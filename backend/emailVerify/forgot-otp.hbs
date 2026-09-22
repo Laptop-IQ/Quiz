@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+     <meta charset="UTF-8" />
+     <title>{{purpose}}</title>
+     <style>
+          body {
+               font-family: 'Segoe UI', Arial, sans-serif;
+               background: #eef1f7;
+               margin: 0;
+               padding: 0;
+          }
+
+          .container {
+               max-width: 600px;
+               margin: 40px auto;
+               background: #ffffff;
+               border-radius: 16px;
+               box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+               overflow: hidden;
+               border: 2px solid #064d0b;
+          }
+
+          .header {
+               background: linear-gradient(135deg, #064d0b, #016618);
+               color: #fff;
+               text-align: center;
+               padding: 32px 20px;
+               font-size: 26px;
+               font-weight: 700;
+               letter-spacing: 1px;
+          }
+
+          .header-table {
+               margin: 0 auto;
+          }
+
+          .header-table td {
+               vertical-align: middle;
+          }
+
+          .body {
+               padding: 32px 28px;
+               color: #333;
+               line-height: 1.7;
+               font-size: 16px;
+          }
+
+          .body p {
+               margin: 12px 0;
+          }
+
+          /* OTP Box with Glow */
+          .otp {
+               display: block;
+               font-size: 32px;
+               font-weight: bold;
+               color: #0e5402;
+               text-align: center;
+               margin: 24px auto;
+               letter-spacing: 6px;
+               background: #f4f4f8;
+               padding: 12px 24px;
+               border-radius: 8px;
+               box-shadow: 0 0 12px 4px rgba(108, 153, 0, 0.4);
+               width: fit-content;
+          }
+
+          .footer {
+               text-align: center;
+               font-size: 13px;
+               color: #888;
+               padding: 22px;
+               border-top: 1px solid #eee;
+          }
+
+          a {
+               color: #064d0b;
+               text-decoration: none;
+          }
+     </style>
+</head>
+
+<body>
+     <div class="container">
+          <!-- Header with inline logo -->
+          <div class="header">
+               <table class="header-table" cellpadding="0" cellspacing="0">
+                    <tr>
+                         <td style="padding-right:12px;">
+                              <img src="{{logo_url}}" width="50" alt="{{app_name}} Logo">
+                         </td>
+                         <td>{{app_name}}</td>
+                    </tr>
+               </table>
+          </div>
+
+          <!-- Body -->
+          <div class="body">
+               <p>Hello from <strong>{{app_name}}</strong>,</p>
+               <p>We received a request to reset the password for your account. Use the OTP below to proceed:</p>
+               <div class="otp">{{otp}}</div>
+               <p>This OTP is valid for <strong>{{otp_expiry}} minutes</strong>. Keep it secure and do not share with
+                    anyone.</p>
+               <p style="margin-top:24px; font-size:14px; color:#666;">
+                    You're receiving this email because a password reset was requested for your {{app_name}} account.
+                    If this wasn't you, please ignore this email.
+               </p>
+               <p style="margin-top:24px; text-align:center;">
+                    <a href="{{website_url}}" target="_blank">Visit {{app_name}}</a>
+               </p>
+          </div>
+
+          <!-- Footer -->
+          <div class="footer">
+               &copy; {{year}} {{app_name}}. All rights reserved.<br>
+               This is an automated email. Please do not reply.
+          </div>
+     </div>
+</body>
+
+</html>

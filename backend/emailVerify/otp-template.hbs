@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{purpose}}</title>
+</head>
+
+<body style="margin:0; padding:0; background:#eef1f7; font-family:Segoe UI, Arial, sans-serif;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef1f7; padding:20px;">
+        <tr>
+            <td align="center">
+
+                <!-- Container -->
+                <table width="600" cellpadding="0" cellspacing="0"
+                    style="background:#ffffff; border-radius:12px; overflow:hidden; border:2px solid #064d0b;">
+
+                    <!-- Header with Logo inline -->
+                    <tr>
+                        <td style="background:#064d0b; padding:20px;">
+                            <table align="center" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <!-- Logo -->
+                                    <td style="vertical-align:middle; padding-right:12px;">
+                                        <img src="{{logo_url}}" width="50" style="display:block;"
+                                            alt="{{app_name}} Logo" />
+                                    </td>
+                                    <!-- Header Text -->
+                                    <td
+                                        style="vertical-align:middle; color:#ffffff; font-size:24px; font-weight:700; letter-spacing:1px;">
+                                        {{app_name}}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:30px; color:#333; font-size:15px; line-height:1.6;">
+
+                            <p style="margin:0 0 15px;">👋 Welcome to <strong>{{app_name}}</strong></p>
+
+                            <p style="margin:0 0 15px;">
+                                To complete your signup, please verify your email using the OTP below:
+                            </p>
+
+                            <!-- OTP Box with Glow Effect -->
+                            <table align="center" cellpadding="0" cellspacing="0" style="margin:20px auto;">
+                                <tr>
+                                    <td style="
+                                        font-size:32px;
+                                        font-weight:bold;
+                                        letter-spacing:6px;
+                                        color:#0e5402;
+                                        background:#f4f4f8;
+                                        padding:12px 25px;
+                                        border-radius:8px;
+                                        box-shadow: 0 0 12px 4px rgba(108, 153, 0, 0.4);
+                                        text-align:center;
+                                    ">
+                                        {{otp}}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin:15px 0;">
+                                This OTP is valid for <strong>{{otp_expiry}} minutes</strong>. Keep it secure and do not
+                                share with
+                                anyone.
+                            </p>
+
+                            <p style="margin-top:20px; font-size:13px; color:#666;">
+                                You're receiving this email because a verification code was requested for your account.
+                                If this wasn't you, please ignore this email.
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td
+                            style="text-align:center; font-size:12px; color:#888; padding:20px; border-top:1px solid #eee;">
+                            © {{year}} {{app_name}}. All rights reserved.
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
