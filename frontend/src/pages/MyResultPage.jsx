@@ -1,14 +1,16 @@
-import React from 'react'
-import Navbar from '../components/Navbar'
-import Myresult from '../components/Myresult'
+import React from "react";
+import Navbar from "../components/Navbar";
+import MyResult from "../components/MyResult";
 
-const Myresultpage = () => {
+const MyResultPage = () => {
   return (
-    <div>
-     <Navbar/>
-     <Myresult/>
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="max-w-5xl mx-auto px-4 md:px-6 py-8">
+        <MyResult />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Myresultpage
+export default MyResultPage;

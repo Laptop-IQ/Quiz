@@ -15,6 +15,19 @@ import Profile from "./pages/Profile";
 import axios from "axios";
 import NotificationBar from "./Context/NotificationBar";
 import Home from "./pages/Home";
+import Landing from "./pages/Landing";
+import SeriesInstructions from "./pages/SeriesInstructions";
+import SeriesStart from "./pages/SeriesStart";
+import ExamEngine from "./pages/ExamEngine";
+import TestSeries from "./pages/TestSeries";
+import MyResultPage from "./pages/MyResultPage";
+import Dashboard from "./pages/Dashboard";
+import DashboardLayout from "./components/DashboardShell/DashboardLayout";
+import RequireAuth from "./components/RequireAuth";
+import AttemptedTests from "./pages/AttemptedTests";
+import DashboardTestSeries from "./pages/DashboardTestSeries";
+import DashboardPractice from "./pages/DashboardPractice";
+import ComingSoon from "./pages/ComingSoon";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -157,14 +170,19 @@ const App = () => {
     }
   }, [transactions]);
 
-  const handleLogin = (userData, remember = false, tokenFromApi = null) => {
+  const handleLogin = (
+    userData,
+    remember = false,
+    tokenFromApi = null,
+    redirectTo = "/dashboard",
+  ) => {
     persistAuth(userData, tokenFromApi, remember);
-    navigate("/");
+    navigate(redirectTo);
   };
 
   const handleSignup = (userData, remember = false, tokenFromApi = null) => {
     persistAuth(userData, tokenFromApi, remember);
-    navigate("/");
+    navigate("/dashboard");
   };
 
   const handleLogout = () => {
@@ -204,7 +222,27 @@ const App = () => {
         <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/quiz" element={<Home />} />
+        <Route path="/test-series" element={<TestSeries />} />
+        <Route path="/test-series/:techId" element={<SeriesInstructions />} />
+        <Route path="/test-series/:techId/start" element={<SeriesStart />} />
+        <Route path="/exam/:techId/:level" element={<ExamEngine />} />
+        <Route path="/result" element={<MyResultPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="test-series" element={<DashboardTestSeries />} />
+          <Route path="practice" element={<DashboardPractice />} />
+          <Route path="attempted-tests" element={<AttemptedTests />} />
+          <Route path="coming-soon" element={<ComingSoon />} />
+        </Route>
 
         <Route>
           <Route

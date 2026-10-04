@@ -322,15 +322,15 @@ export const profileStyles = {
   // Container styles
   container: "max-w-4xl mx-auto py-8 px-4",
   mainContainer:
-    "bg-white -mx-7 rounded-xl shadow-sm overflow-hidden border border-blue-300",
+    "bg-white -mx-7 rounded-xl shadow-sm overflow-hidden border border-gray-200",
 
   // Header styles
   header:
-    "hidden sm:block bg-gradient-to-r from-teal-500 to-emerald-600 p-2 text-center py-12",
+    "hidden sm:block bg-[#15803D] p-2 text-center py-12",
   avatar:
     "block w-44 h-44 mx-auto rounded-full flex items-center justify-center",
   userName: "text-5xl font-bold text-white mx-48",
-  userEmail: "text-teal-100 mt-2 mx-48",
+  userEmail: "text-green-100 mt-2 mx-48",
 
   // Content styles
   content: "p-8 -mx-6.5",
@@ -339,28 +339,28 @@ export const profileStyles = {
   // Card styles
   card: "bg-blue-50 rounded-lg p-6 border border-blue-100",
   cardTitle: "text-xl font-semibold pb-3 text-black flex items-center",
-  icon: "w-5 h-5 mr-2 text-teal-600",
+  icon: "w-5 h-5 mr-2 text-[#15803D]",
 
   // Form styles
   label: "text-sm text-gray-500  block mb-1",
   input:
-    "w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-500 ",
+    "w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-200 focus:border-[#15803D] ",
   inputWithError:
-    "w-full px-4 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-teal-300 focus:border-teal-500",
+    "w-full px-4 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
 
   // Button styles
   buttonPrimary:
-    "flex-1 bg-gradient-to-r from-teal-500 to-emerald-600 text-white py-2.5 rounded-xl font-medium shadow-md cursor-pointer",
+    "flex-1 bg-[#16A34A] text-white py-2.5 rounded-xl font-medium shadow-sm hover:bg-[#15803D] cursor-pointer",
   buttonSecondary:
     "flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 cursor-pointer",
   editButton:
-    "text-teal-600 hover:text-teal-700 font-medium text-sm cursor-pointer",
+    "text-[#15803D] hover:text-[#14532D] font-medium text-sm cursor-pointer",
   changeButton:
-    "text-teal-600 hover:text-teal-700 font-medium lg:text-sm cursor-pointer",
+    "text-[#15803D] hover:text-[#14532D] font-medium lg:text-sm cursor-pointer",
 
   // Security item
   securityItem:
-    "flex items-center justify-between p-4 bg-white rounded-lg border border-blue-300",
+    "flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200",
   securityText: "font-medium lg:text-sm text-gray-400",
 
   // Modal styles
@@ -428,18 +428,18 @@ export const modalStyles = {
 export const loginStyles = {
   // Page container
   pageContainer:
-    "min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-teal-50 to-emerald-50",
+    "min-h-screen flex items-center justify-center p-4 bg-gray-50",
 
   // Card container
   cardContainer:
-    "w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden",
+    "w-full max-w-md bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden",
 
   // Header styles
-  header: "bg-gradient-to-r from-teal-500 to-emerald-600 p-6 text-center",
+  header: "bg-[#15803D] p-6 text-center",
   avatar:
-    "w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center mb-4",
+    "w-20 h-20 mx-auto rounded-full bg-white/15 flex items-center justify-center mb-4",
   headerTitle: "text-2xl font-bold text-white",
-  headerSubtitle: "text-teal-100 mt-2",
+  headerSubtitle: "text-green-100 mt-2",
 
   // Form container
   formContainer: "p-8",
@@ -457,27 +457,27 @@ export const loginStyles = {
   inputIcon:
     "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400",
   input:
-    "w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-300 focus:border-teal-500",
+    "w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
   passwordInput:
-    "w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-300 focus:border-teal-500",
+    "w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
   passwordToggle:
     "absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600",
 
   // Checkbox
   checkboxContainer: "mb-6 flex items-center",
   checkbox:
-    "w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer",
+    "w-4 h-4 text-[#15803D] border-gray-300 rounded focus:ring-blue-300 cursor-pointer",
   checkboxLabel: "ml-2 z-20 block text-sm text-gray-700 cursor-pointer",
 
   // Button
   button:
-    "w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center cursor-pointer",
+    "w-full bg-[#16A34A] text-white py-3 rounded-xl font-medium shadow-sm hover:bg-[#15803D] transition-all flex items-center justify-center cursor-pointer",
   buttonDisabled: "opacity-80 cursor-not-allowed",
 
   // Sign up link
   signUpContainer: "mt-8 text-center",
   signUpText: "text-gray-600",
-  signUpLink: "font-medium text-teal-600 hover:underline",
+  signUpLink: "font-medium text-[#15803D] hover:underline",
 
   // Spinner for loading state
   spinner: "animate-spin -ml-1 mr-3 h-5 w-5 text-white",
@@ -536,19 +536,19 @@ export const navbarStyles = {
 export const signupStyles = {
   // Page container (reusing from login)
   pageContainer:
-    "min-h-screen flex items-center justify-center p-3 bg-gradient-to-br from-teal-50 to-emerald-50",
+    "min-h-screen flex items-center justify-center p-3 bg-gray-50",
 
   // Card container (reusing from login)
   cardContainer:
-    "w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden",
+    "w-full max-w-md bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden",
 
   // Header styles (reusing from login with additions)
   header:
-    "bg-gradient-to-r from-teal-500 to-emerald-600 p-6 text-center relative",
+    "bg-[#15803D] p-6 text-center relative",
   avatar:
-    "w-18 h-18 mx-auto rounded-full bg-white/20 flex items-center justify-center mb-2",
+    "w-18 h-18 mx-auto rounded-full bg-white/15 flex items-center justify-center mb-2",
   headerTitle: "text-2xl font-bold text-white",
-  headerSubtitle: "text-teal-100 mt-2",
+  headerSubtitle: "text-green-100 mt-2",
   backButton:
     "absolute top-4 left-4 p-2 text-white rounded-full hover:bg-white/10 transition-colors",
 
@@ -565,27 +565,27 @@ export const signupStyles = {
   inputIcon:
     "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400",
   input:
-    "w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-300 focus:border-teal-500",
+    "w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
   passwordInput:
-    "w-full pl-10 pr-10 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-teal-300 focus:border-teal-500",
+    "w-full pl-10 pr-10 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
   passwordToggle:
     "absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600",
 
   // Checkbox (reusing from login)
   checkboxContainer: "mb-6 flex items-center",
   checkbox:
-    "w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer",
+    "w-4 h-4 text-[#15803D] border-gray-300 rounded focus:ring-blue-300 cursor-pointer",
   checkboxLabel: "ml-2 z-20 block text-sm text-gray-700 cursor-pointer",
 
   // Button (reusing from login)
   button:
-    "w-full bg-gradient-to-r from-teal-500 to-emerald-600 text-white py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center cursor-pointer",
+    "w-full bg-[#16A34A] text-white py-3 rounded-xl font-medium shadow-sm hover:bg-[#15803D] transition-all flex items-center justify-center cursor-pointer",
   buttonDisabled: "opacity-80 cursor-not-allowed",
 
   // Sign in link (reusing from login with modifications)
   signInContainer: "mt-2 text-center",
   signInText: "text-gray-600",
-  signInLink: "font-medium text-teal-600 hover:underline",
+  signInLink: "font-medium text-[#15803D] hover:underline",
 
   // Spinner for loading state (reusing from login)
   spinner: "animate-spin -ml-1 mr-3 h-5 w-5 text-white",

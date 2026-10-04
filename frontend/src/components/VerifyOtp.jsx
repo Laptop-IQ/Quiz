@@ -55,7 +55,7 @@ const VerifyOtp = () => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "OTP verification failed");
     } finally {
@@ -74,8 +74,8 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-linear-to-br from-teal-50 to-emerald-50 p-4">
-      <div className="bg-white/20 backdrop-blur-md border border-blue-300 max-w-md w-full p-8 rounded-lg shadow-xl shadow-blue-300 flex flex-col items-center">
+    <div className="flex items-center justify-center h-screen bg-gray-50 p-4">
+      <div className="bg-white border border-gray-200 max-w-md w-full p-8 rounded-xl shadow-sm flex flex-col items-center">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
           Verify Your Account
         </h2>
@@ -93,7 +93,7 @@ const VerifyOtp = () => {
               value={digit}
               ref={(el) => (inputRefs.current[index] = el)}
               onChange={(e) => handleChange(e, index)}
-              className="w-12 h-12 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
+              className="w-12 h-12 border border-gray-300 rounded-lg text-center text-lg focus:outline-none focus:ring-2 focus:ring-green-200 transition"
             />
           ))}
         </div>
@@ -105,7 +105,7 @@ const VerifyOtp = () => {
         <button
           onClick={handleVerify}
           disabled={isLoading}
-          className="w-full bg-linear-to-r from-teal-500 to-emerald-600 text-white py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center cursor-pointer"
+          className="w-full bg-[#16A34A] text-white py-3 rounded-xl font-medium shadow-sm hover:bg-[#15803D] transition-all flex items-center justify-center cursor-pointer"
         >
           {isLoading ? "Verifying..." : "Verify OTP"}
         </button>
@@ -116,7 +116,7 @@ const VerifyOtp = () => {
           <button
             onClick={handleResend}
             disabled={resendTimer > 0}
-            className={`text-blue-500 text-sm font-medium cursor-pointer ${
+            className={`text-[#15803D] text-sm font-medium cursor-pointer ${
               resendTimer > 0 ? "opacity-50 cursor-not-allowed" : ""
             } transition`}
           >

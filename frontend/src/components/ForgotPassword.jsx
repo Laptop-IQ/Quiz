@@ -50,8 +50,8 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-teal-50 to-emerald-50 px-4">
-      <div className="bg-white/30 backdrop-blur-lg border border-teal-200 max-w-md w-full p-8 rounded-3xl shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white border border-gray-200 max-w-md w-full p-8 rounded-xl shadow-sm">
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">
           Forgot Password
         </h2>
@@ -79,13 +79,13 @@ const ForgotPassword = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-4 mb-6 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-400 transition shadow-sm"
+              className="w-full p-4 mb-6 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-200 transition shadow-sm"
             />
 
             <button
               onClick={handleSendOTP}
               disabled={isLoading}
-              className="w-full py-4 rounded-xl bg-linear-to-r from-teal-500 to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all flex justify-center items-center"
+              className="w-full py-4 rounded-xl bg-[#16A34A] text-white font-semibold shadow-sm hover:bg-[#15803D] transition-all flex justify-center items-center"
             >
               {isLoading ? "Sending OTP..." : "Send OTP"}
             </button>
@@ -121,7 +121,7 @@ const ForgotPassword = () => {
                     }
                   }}
                   id={`otp-${idx}`}
-                  className="w-13 h-13 text-center text-lg font-medium border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-sm transition"
+                  className="w-13 h-13 text-center text-lg font-medium border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-200 shadow-sm transition"
                 />
               ))}
             </div>
@@ -131,13 +131,13 @@ const ForgotPassword = () => {
               placeholder="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-4 mb-6 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-400 transition shadow-sm"
+              className="w-full p-4 mb-6 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-200 transition shadow-sm"
             />
 
             <button
               onClick={handleVerifyOTP}
               disabled={isLoading}
-              className="w-full p-4 rounded-lg bg-linear-to-r from-teal-500 to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition-all flex justify-center items-center"
+              className="w-full p-4 rounded-lg bg-[#16A34A] text-white font-semibold shadow-sm hover:bg-[#15803D] transition-all flex justify-center items-center"
             >
               {isLoading ? "Resetting..." : "Reset Password"}
             </button>

@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import axios from "axios";
 
 // ✅ Base URL
@@ -45,7 +46,8 @@ apiClient.interceptors.response.use(
 
 // ✅ Generic request function (HOOK)
 export const useApi = () => {
-  const request = async (endpoint, method = "GET", body = null) => {
+  // stable reference so components can safely list `request` in effect deps
+  const request = useCallback(async (endpoint, method = "GET", body = null) => {
     try {
       const response = await apiClient({
         url: endpoint,
@@ -57,7 +59,7 @@ export const useApi = () => {
     } catch (error) {
       throw new Error(error.response?.data?.message || "API ERROR");
     }
-  };
+  }, []);
 
   return { request };
 };

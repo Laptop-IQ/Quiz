@@ -169,84 +169,74 @@ export const navbarAnimations = `
   }
 `;
 
-// Navbar component styles - COMPLETE
+// Navbar component styles - Testbook-style: flat white bar, navy brand, orange CTA
 export const navbarStyles = {
   // Main container styles
-  container: "relative font-serif flex justify-center items-center py-4 px-4",
+  container: "sticky top-0 z-50 w-full font-sans",
 
   // Nav element styles
-  nav: (borderColor, isHovering) =>
-    `relative w-full max-w-7xl rounded-xl xl:rounded-full backdrop-blur-md bg-white/55 border ${borderColor} shadow-xl overflow-hidden transition-all duration-500 ${
-      isHovering ? "shadow-2xl " : "shadow-lg"
-    }`,
+  nav: () =>
+    `relative w-full bg-white border-b border-gray-200 transition-shadow duration-300`,
 
-  // Pattern container
-  patternContainer: "absolute inset-0 rounded-2xl overflow-hidden",
-  patternLayer: "absolute inset-0 pointer-events-none opacity-30",
+  // Pattern container (kept as no-ops so Navbar.jsx doesn't need structural changes)
+  patternContainer: "hidden",
+  patternLayer: "hidden",
 
   // Inner layout
-  innerContainer: "relative p-3 md:p-5",
-  flexContainer: "flex items-center justify-between gap-3",
+  innerContainer: "relative px-4 md:px-6",
+  flexContainer: "flex items-center justify-between gap-3 h-16",
 
   // Logo section
-  logoSection: "relative flex items-center gap-3 flex-shrink-0",
+  logoSection: "relative flex items-center gap-2 flex-shrink-0",
   logoWrapper: "relative group",
-  logoButton:
-    "relative transform transition-all duration-500 flex items-center gap-2",
-  logoImageContainer: "relative p-1.5 flex-shrink-0",
-  logoImage:
-    "h-10 w-10 md:h-11 md:w-11 cursor-pointer lg:h-12 lg:w-12 object-cover flex-shrink-0",
+  logoButton: "relative flex items-center gap-2",
+  logoImageContainer: "relative flex-shrink-0",
+  logoImage: "h-8 w-8 md:h-9 md:w-9 cursor-pointer object-cover flex-shrink-0",
   mobileTitleContainer:
-    "block md:hidden font-semibold text-gray-800 whitespace-nowrap",
-  titleGradient:
-    "bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500 uppercase md:text-xl xl:text-2xl bg-clip-text text-sm text-transparent",
+    "block md:hidden font-bold text-[#15803D] whitespace-nowrap",
+  titleGradient: "text-[#15803D] uppercase md:text-lg xl:text-xl font-extrabold tracking-tight",
 
   // Title section
-  titleContainer: "hidden md:flex flex-1 justify-center px-2 min-w-0",
+  titleContainer: "flex items-center px-2 min-w-0",
   titleWrapper: "relative",
-  titleBox:
-    "relative lg:ml-50 px-6 py-3 bg-white/95 backdrop-blur-sm rounded-full border border-white/80 shadow-sm max-w-[60vw] md:max-w-[40ch]",
-  titleText: (textColor) =>
-    `text-xl md:text-xl xl:text-2xl font-bold ${textColor} whitespace-nowrap tracking-tight `,
+  titleBox: "relative",
+  titleText: () =>
+    `text-lg md:text-lg xl:text-xl font-extrabold text-gray-900 whitespace-nowrap tracking-tight`,
 
   // Desktop buttons
   desktopButtons: "hidden md:flex items-center space-x-3 flex-shrink-0",
-  buttonBase: (accentColor) =>
-    `group relative px-4 py-2.5 cursor-pointer rounded-full bg-gradient-to-r ${accentColor} text-white font-semibold shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105`,
-  buttonHoverEffect:
-    "absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000",
+  buttonBase: () =>
+    `group relative px-5 py-2 cursor-pointer rounded-md border border-[#15803D] text-[#15803D] font-semibold text-sm transition-all duration-200 hover:bg-[#15803D] hover:text-white`,
+  buttonHoverEffect: "hidden",
   buttonContent: "relative flex items-center gap-2",
   buttonIcon: "h-5 w-5",
   buttonText: "text-sm",
   logoutButton:
-    "group relative px-4 cursor-pointer py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-400 text-white font-semibold shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105",
+    "group relative px-5 cursor-pointer py-2 rounded-md bg-[#16A34A] text-white font-semibold text-sm shadow-sm transition-all duration-200 hover:bg-[#15803D]",
 
   // Mobile menu button
   mobileMenuContainer: "md:hidden flex items-center",
-  mobileMenuButton: (accentColor) =>
-    `relative p-2.5 rounded-xl bg-gradient-to-r ${accentColor} text-white shadow-md transition-all duration-300 hover:scale-105`,
+  mobileMenuButton: () =>
+    `relative p-2 rounded-md border border-gray-300 text-[#15803D] transition-all duration-200 hover:bg-gray-50`,
   mobileMenuIcon: "h-5 w-5",
 
   // Mobile dropdown menu
-  mobileMenuWrapper: "md:hidden mt-4 pt-4 border-t border-gray-200/50",
-  mobileMenuContent: "flex flex-col space-y-2 px-2",
-  mobileMenuItem: (accentColor) =>
-    `group w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r ${accentColor} text-white font-medium shadow-md transition-all duration-300 hover:scale-[1.02]`,
+  mobileMenuWrapper: "md:hidden mt-2 pb-4 border-t border-gray-200",
+  mobileMenuContent: "flex flex-col space-y-2 px-2 pt-3",
+  mobileMenuItem: () =>
+    `group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md border border-[#15803D] text-[#15803D] font-semibold text-sm transition-all duration-200 hover:bg-[#15803D] hover:text-white`,
 
   // Icon animations
-  iconAnimateBounce: "group-hover:animate-bounce",
-  iconRotate180: "group-hover:rotate-180 transition-transform duration-500",
-  iconTranslateX: "group-hover:translate-x-1 transition-transform duration-300",
+  iconAnimateBounce: "",
+  iconRotate180: "",
+  iconTranslateX: "",
 
-  // Mobile logout button (has different gradient)
+  // Mobile logout button
   mobileLogoutButton:
-    "group w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-400 text-white font-medium shadow-md transition-all duration-300 hover:scale-[1.02]",
+    "group w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-[#16A34A] text-white font-semibold text-sm shadow-sm transition-all duration-200 hover:bg-[#15803D]",
 
   // Utility styles
-  backgroundPatternStyle: {
-    backgroundSize: "200px 200px",
-    backgroundPosition: "center",
-  },
+  backgroundPatternStyle: {},
 };
 
 
@@ -400,27 +390,27 @@ export const colorClasses = {
 // Result page styles
 export const resultPageStyles = {
   // Main container styles
-  container: "min-h-screen font-[pacifico] bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6",
+  container: "min-h-screen font-sans bg-gray-50 p-4 md:p-6",
   innerContainer: "max-w-6xl mx-auto",
   
   // Header styles
   header: "mb-8 md:mb-10 flex justify-center",
-  headerBox: "bg-white rounded-full p-6 md:p-8 shadow-sm border border-gray-100 text-center min-w-[260px]",
-  headerTitle: "text-2xl md:text-3xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-indigo-600 via-pink-500 to-yellow-500 bg-clip-text text-transparent animate-fade-in-up",
+  headerBox: "bg-white rounded-xl p-6 md:p-8 shadow-sm border border-gray-200 text-center min-w-[260px]",
+  headerTitle: "text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-[#15803D] animate-fade-in-up",
   
   // Track section styles
   trackSection: "mb-8 md:mb-10",
   trackHeader: "flex items-center justify-between mb-4",
-  trackTitle: "text-xl md:text-2xl font-bold shadow-md bg-gradient-to-r from-indigo-600 via-pink-500 to-yellow-500 bg-clip-text text-transparent bg-white px-4 py-2 rounded-full border border-gray-100",
+  trackTitle: "text-xl md:text-2xl font-bold text-[#15803D] bg-white px-4 py-2 rounded-lg border border-gray-200",
   
   // Cards grid
   cardsGrid: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-5",
   
   // StripCard component styles
   stripCard: (colors) => `
-    relative bg-white rounded-2xl overflow-hidden
-    border-2 ${colors.border}
-    shadow-md hover:shadow-xl transition-all duration-300
+    relative bg-white rounded-xl overflow-hidden
+    border ${colors.border}
+    shadow-sm hover:shadow-md transition-all duration-300
     ${colors.hoverBorder} cursor-pointer
     transform hover:-translate-y-1
   `,
@@ -514,91 +504,91 @@ export const resultPageAnimations = `
 
 export const sidebarStyles = {
   // Layout and container styles
-  container: "min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50",
+  container: "min-h-screen bg-gray-50",
   flexContainer: "flex xl:h-screen xl:overflow-y-hidden lg:h-screen lg:overflow-y-hidden",
   
   // Overlay styles
-  overlay: "fixed inset-0 bg-black/20 backdrop-blur-sm z-30",
+  overlay: "fixed inset-0 bg-black/20 z-30",
   
   // Sidebar styles
-  sidebar: "fixed h-screen font-mono z-40 top-0 left-0 w-80 transform transition-transform duration-300 ease-in-out bg-white/90 backdrop-blur-sm shadow-2xl rounded-r-3xl overflow-y-auto border-r border-white/30 lg:relative lg:translate-x-0 lg:flex lg:flex-col",
+  sidebar: "fixed h-screen font-mono z-40 top-0 left-0 w-80 transform transition-transform duration-300 ease-in-out bg-white shadow-md rounded-r-xl overflow-y-auto border-r border-gray-200 lg:relative lg:translate-x-0 lg:flex lg:flex-col",
   sidebarOpen: "translate-x-0",
   sidebarClosed: "-translate-x-full",
   
   // Sidebar header
-  sidebarHeader: "sticky top-0 z-20 p-6 bg-gradient-to-br from-rose-50/95 to-amber-50/95 border-b border-blue-100/50 backdrop-blur-sm",
+  sidebarHeader: "sticky top-0 z-20 p-6 bg-white border-b border-gray-200",
   headerContent: "flex items-center justify-between relative z-10",
   logoContainer: "flex items-center space-x-3",
-  logoIcon: "p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl shadow-lg",
+  logoIcon: "p-2 bg-blue-50 rounded-xl shadow-lg",
   logoTextContainer: "mt-1 text-slate-600 text-sm",
-  title: "text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent",
+  title: "text-2xl font-bold text-[#15803D]",
   subtitle: "mt-1 text-slate-600 text-sm",
-  closeButton: "p-2 rounded-lg bg-white/60 hover:bg-white/80 transition lg:hidden",
+  closeButton: "p-2 rounded-lg bg-white hover:bg-white transition lg:hidden",
   
   // Sidebar content
   sidebarContent: "sidebar-content flex-1 overflow-y-auto p-4",
   techSectionHeader: "mb-4 flex items-center justify-between",
   techTitle: "text-lg font-semibold text-slate-700 flex items-center gap-2",
-  techTitleAccent: "w-1 h-4 bg-gradient-to-b from-blue-400 to-purple-400 rounded-full",
-  techCountBadge: "text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-3 py-1 rounded-full",
+  techTitleAccent: "w-1 h-4 bg-[#16A34A] rounded-full",
+  techCountBadge: "text-xs bg-blue-50 text-blue-800 px-3 py-1 rounded-full",
   
   // Technology buttons
-  techButton: "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border backdrop-blur-sm",
+  techButton: "w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border ",
   techButtonSelected: "border-blue-400 cursor-pointer  shadow-lg transform scale-[1.02]",
-  techButtonUnselected: "border-white/50  hover:border-blue-300 cursor-pointer hover:shadow-md hover:bg-white/50",
+  techButtonUnselected: "border-gray-200  hover:border-blue-300 cursor-pointer hover:shadow-md hover:bg-white",
   techIconContainer: "flex items-center space-x-3",
   techIcon: "p-2 rounded-lg shadow-sm",
   techName: "font-medium text-slate-800",
   techChevron: "text-gray-400",
   
   // Level selection container
-  levelContainer: "mt-3 ml-2 p-3 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-sm",
-  levelButton: "w-full p-3 my-2 rounded-xl border transition-all backdrop-blur-sm",
+  levelContainer: "mt-3 ml-2 p-3 bg-white rounded-2xl border border-gray-200 shadow-sm",
+  levelButton: "w-full p-3 my-2 rounded-xl border transition-all ",
   levelButtonSelected: "border-current shadow-md font-bold",
-  levelButtonUnselected: "border-white/50 hover:bg-white/60",
+  levelButtonUnselected: "border-gray-200 hover:bg-white",
   levelContent: "flex items-center justify-between w-full mb-1",
   levelInfo: "flex items-center space-x-2",
   levelIconContainer: "p-1.5 rounded-lg shadow-sm",
   levelName: "font-medium text-left text-slate-800",
   levelStats: "flex flex-col items-end",
-  questionCountBadge: "text-xs bg-gradient-to-r from-gray-100 to-gray-200 text-slate-700 px-2 py-1 rounded-full mb-1",
-  timeBadge: "text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 px-2 py-0.5 rounded-full",
+  questionCountBadge: "text-xs bg-gray-50 text-slate-700 px-2 py-1 rounded-full mb-1",
+  timeBadge: "text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full",
   progressContainer: "flex items-center justify-between w-full mt-1",
-  answeredBadge: "text-xs bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-2 py-0.5 rounded-full",
-  completedBadge: "text-xs bg-gradient-to-r from-purple-100 to-violet-100 text-purple-700 px-2 py-0.5 rounded-full",
+  answeredBadge: "text-xs bg-green-50 text-emerald-700 px-2 py-0.5 rounded-full",
+  completedBadge: "text-xs bg-blue-50 text-purple-700 px-2 py-0.5 rounded-full",
   
   // Sidebar footer
-  sidebarFooter: "sticky bottom-0 z-20 p-4 border-t border-white/30 bg-white/80 backdrop-blur-sm",
+  sidebarFooter: "sticky bottom-0 z-20 p-4 border-t border-gray-200 bg-white ",
   footerTextContainer: "text-center text-xs text-slate-500 pt-2",
-  footerText1: "bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-semibold",
+  footerText1: "text-[#15803D] font-semibold",
   footerText2: "mt-1 text-blue-600/80 font-medium",
   
   // Main content header
   mainContent: "flex-1 font-mono min-h-screen p-4 md:p-8 ml-0 md:ml-0 overflow-y-auto",
   mobileHeader: "flex items-center justify-between mb-4",
-  hamburgerButton: "p-2 rounded-xl lg:hidden bg-white/80 backdrop-blur-sm shadow-lg",
+  hamburgerButton: "p-2 rounded-xl lg:hidden bg-white shadow-lg",
   
   // Mobile level selection
   mobileLevelContainer: "lg:hidden mb-4",
   mobileLevelScroll: "flex gap-2 overflow-x-auto pb-2",
-  mobileLevelButton: "flex-none px-4 py-3 rounded-2xl border border-white/50 bg-white/80 backdrop-blur-sm shadow-lg min-w-[140px]",
+  mobileLevelButton: "flex-none px-4 py-3 rounded-2xl border border-gray-200 bg-white shadow-lg min-w-[140px]",
   mobileLevelContent: "flex flex-col items-center space-y-1",
   mobileLevelName: "font-medium text-sm text-slate-800",
   mobileLevelStats: "flex items-center space-x-2",
   
   // Empty state (no tech selected)
   emptyState: "h-full overflow-y-hidden pb-40 font-serif flex items-center justify-center py-16 px-4",
-  emptyStateCard: "text-center w-full max-w-3xl mx-auto bg-gradient-to-br from-rose-50/95 to-amber-50/95 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl shadow-rose-200/40 border border-rose-100/50",
+  emptyStateCard: "text-center w-full max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-200",
   emptyStateHeader: "mb-8",
-  emptyStateIconContainer: "inline-flex items-center justify-center p-3 bg-gradient-to-br from-rose-100 to-orange-100 rounded-2xl mb-4",
-  emptyStateTitle: "text-2xl md:text-3xl font-bold bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500 bg-clip-text text-transparent mb-3",
+  emptyStateIconContainer: "inline-flex items-center justify-center p-3 bg-blue-50 rounded-2xl mb-4",
+  emptyStateTitle: "text-2xl md:text-3xl font-bold text-[#15803D] mb-3",
   emptyStateSubtitle: "text-sm md:text-base text-slate-800 mb-6 max-w-md mx-auto leading-relaxed",
   featureCardsGrid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-8",
   
   // Feature card
   featureCard: "group relative h-full",
   featureCardGlow: "absolute -inset-0.5 rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition duration-300",
-  featureCardBody: "relative bg-white/95 p-5 rounded-xl border backdrop-blur-sm text-center h-full flex  flex-col",
+  featureCardBody: "relative bg-white p-5 rounded-xl border text-center h-full flex  flex-col",
   featureCardIconContainer: "inline-flex items-center justify-center p-2 rounded-lg mb-3 ring-1",
   featureCardTitle: "font-semibold text-slate-800 text-base mb-3",
   featureCardList: "space-y-2 text-left flex-grow",
@@ -613,35 +603,35 @@ export const sidebarStyles = {
   checkIcon: "w-3 h-3 mr-2 flex-shrink-0",
   
   // Call to action
-  ctaContainer: "relative overflow-hidden rounded-xl bg-gradient-to-r from-white to-rose-50/80 p-4 border border-rose-200/50",
-  ctaAccent: "absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500",
+  ctaContainer: "relative overflow-hidden rounded-xl bg-white p-4 border border-gray-200",
+  ctaAccent: "absolute top-0 left-0 w-full h-0.5 bg-[#16A34A]",
   ctaText: "flex items-center justify-center",
   ctaTextInner: "flex items-center text-rose-700 text-sm font-medium",
   ctaSparkle: "w-4 h-4 mr-2 text-amber-500",
   
   // Tech selected, no level
   techSelectedState: "h-full font-serif flex items-center justify-center py-20",
-  techSelectedCard: "text-center bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-white/30 max-w-md",
-  techSelectedIcon: "p-5 rounded-2xl shadow-xl inline-flex mb-6",
-  techSelectedTitle: "text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2",
+  techSelectedCard: "text-center bg-white p-8 md:p-12 rounded-xl shadow-md border border-gray-200 max-w-md",
+  techSelectedIcon: "p-5 rounded-2xl shadow-sm inline-flex mb-6",
+  techSelectedTitle: "text-2xl md:text-3xl font-bold text-[#15803D] mb-2",
   techSelectedSubtitle: "text-slate-600 mb-6",
   progressList: "mb-6 space-y-2",
-  progressItem: "bg-gradient-to-r from-emerald-50/80 to-teal-50/80 p-3 rounded-xl border border-emerald-200/50 backdrop-blur-sm",
+  progressItem: "bg-green-50 p-3 rounded-xl border border-gray-200 ",
   progressText: "text-emerald-700 font-medium",
-  readyMessage: "bg-gradient-to-r from-blue-50/80 to-purple-50/80 p-4 rounded-2xl border border-blue-200/50 backdrop-blur-sm",
+  readyMessage: "bg-blue-50 p-4 rounded-2xl border border-gray-200 ",
   readyText: "text-blue-700 font-medium",
   
   // Results screen
   resultsScreen: "h-full mt-20 md:pb-20 lg:mt-40 mb-30 font-serif flex items-center justify-center py-10",
-  resultsCard: "bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-white/30 max-w-2xl w-full",
+  resultsCard: "bg-white p-8 md:p-12 rounded-xl shadow-md border border-gray-200 max-w-2xl w-full",
   resultsHeader: "text-center",
   resultsIconContainer: "p-5 rounded-2xl shadow-lg inline-flex mb-6",
-  resultsTitle: "text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2",
+  resultsTitle: "text-3xl md:text-4xl font-bold text-[#15803D] mb-2",
   resultsSubtitle: "text-slate-600 mb-2",
   performanceBadge: "inline-block px-4 py-2 rounded-full text-sm font-medium mb-6",
   
   // Time taken display
-  timeTakenContainer: "mb-6 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-5 rounded-2xl border border-blue-200/50 backdrop-blur-sm",
+  timeTakenContainer: "mb-6 bg-blue-50 p-5 rounded-2xl border border-gray-200 ",
   timeTakenHeader: "flex items-center justify-center mb-3",
   timeTakenIcon: "text-blue-600 mb-7 md:mb-0 lg:mb-0 xl:mb-0 xl:ml-0 md:ml-0 xl:ml-0 ml-4 md:mr-2",
   timeTakenText: "text-blue-700 font-semibold text-lg",
@@ -649,35 +639,35 @@ export const sidebarStyles = {
   
   // Score cards
   scoreCardsGrid: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6",
-  scoreCard: "p-5 rounded-2xl border backdrop-blur-sm text-center",
+  scoreCard: "p-5 rounded-2xl border text-center",
   scoreCardIconContainer: "inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3",
   scoreCardNumber: "text-2xl font-bold",
   scoreCardLabel: "font-medium",
   
   // Overall score
-  overallScoreContainer: "bg-gradient-to-r from-indigo-50/80 to-blue-50/80 p-5 rounded-2xl border border-indigo-200/50 backdrop-blur-sm mb-6",
+  overallScoreContainer: "bg-blue-50 p-5 rounded-2xl border border-gray-200 mb-6",
   overallScoreHeader: "flex items-center justify-between mb-4",
   overallScoreLabel: "text-indigo-700 font-semibold",
   overallScoreValue: "text-indigo-700 font-bold",
-  progressBarContainer: "w-full bg-gradient-to-r from-gray-200 to-gray-300 rounded-full h-3",
+  progressBarContainer: "w-full bg-gray-50 rounded-full h-3",
   progressBar: "h-3 rounded-full",
   scoreDescription: "mt-2 text-sm text-slate-600",
   
   // Results buttons
   resultsButtonsContainer: "flex flex-col md:flex-col lg:flex-row sm:flex-row gap-3 justify-center",
-  reviewButton: "px-6 py-3 cursor-pointer bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2",
-  restartButton: "px-6 py-3 cursor-pointer bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-medium rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all border border-gray-300/50 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2",
+  reviewButton: "px-6 py-3 cursor-pointer bg-[#15803D] text-white font-medium rounded-xl hover:bg-[#14532D] transition-all shadow-sm flex items-center justify-center space-x-2",
+  restartButton: "px-6 py-3 cursor-pointer bg-white text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all border border-gray-300 flex items-center justify-center space-x-2",
   
   // Start quiz screen
   startQuizScreen: "h-full font-serif flex items-center overflow-y-hidden justify-center py-10",
-  startQuizCard: "bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-lg border border-white/30 max-w-2xl w-full",
+  startQuizCard: "bg-white p-8 md:p-12 rounded-lg border border-gray-200 max-w-2xl w-full",
   startQuizHeader: "text-center",
-  startQuizIconContainer: "p-5 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 shadow-xl inline-flex mb-6",
-  startQuizTitle: "text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2",
+  startQuizIconContainer: "p-5 rounded-2xl bg-blue-50 shadow-sm inline-flex mb-6",
+  startQuizTitle: "text-3xl md:text-4xl font-bold text-[#15803D] mb-2",
   startQuizSubtitle: "text-slate-600 mb-4",
   
   // Quiz info card
-  quizInfoCard: "bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-5 rounded-2xl border border-blue-200/50 backdrop-blur-sm mb-6",
+  quizInfoCard: "bg-blue-50 p-5 rounded-2xl border border-gray-200 mb-6",
   quizInfoHeader: "flex flex-col md:flex-row lg:flex-row items-center justify-between mb-4",
   techDisplay: "flex items-center mb-3 md:mb-0",
   techDisplayIcon: "p-3 rounded-xl mr-3",
@@ -688,27 +678,27 @@ export const sidebarStyles = {
   statItem: "text-center",
   statNumber: "text-lg font-bold text-slate-800 flex items-center",
   statLabel: "text-sm text-slate-600",
-  instructionsContainer: "mt-4 pt-4 border-t border-blue-200/50",
+  instructionsContainer: "mt-4 pt-4 border-t border-gray-200",
   instructionsTitle: "font-semibold text-blue-700 mb-2",
   instructionsList: "text-sm text-slate-700 text-left space-y-1",
   instructionItem: "flex items-center",
   instructionCheck: "text-emerald-500 mr-2",
   
   // Progress warning
-  progressWarning: "mb-6 p-4 bg-gradient-to-r from-amber-50/80 to-orange-50/80 rounded-2xl border border-amber-200/50 backdrop-blur-sm",
+  progressWarning: "mb-6 p-4 bg-orange-50 rounded-2xl border border-gray-200 ",
   warningText: "text-amber-700 font-medium",
   
   // Start quiz buttons
   startButtonsContainer: "flex flex-col sm:flex-row gap-4 justify-center",
-  startButton: "px-8 py-3 cursor-pointer bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2",
-  changeLevelButton: "px-8 py-3 cursor-pointer bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-medium rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all border border-gray-300/50 shadow-lg hover:shadow-xl",
+  startButton: "px-8 py-3 cursor-pointer bg-[#16A34A] text-white font-medium rounded-xl hover:bg-[#15803D] transition-all shadow-sm flex items-center justify-center space-x-2",
+  changeLevelButton: "px-8 py-3 cursor-pointer bg-white text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all border border-gray-300",
   
   // Quiz in progress container
   quizContainer: "max-w-3xl mx-auto pb-8",
-  quizHeaderCard: "mb-6 bg-white/90 backdrop-blur-xl p-5 md:p-6 rounded-3xl shadow-xl border border-white/30",
+  quizHeaderCard: "mb-6 bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-200",
   quizHeader: "flex flex-col sm:flex-col items-center justify-between mb-6",
-  quizTitle: "text-xl md:text-lg xl:text-2xl lg:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-0",
-  reviewModeBadge: "text-xs xl:text-lg lg:text-md bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 px-3 py-1 rounded-full",
+  quizTitle: "text-xl md:text-lg xl:text-2xl lg:text-xl font-bold text-[#15803D] mb-2 sm:mb-0",
+  reviewModeBadge: "text-xs xl:text-lg lg:text-md bg-blue-50 text-purple-800 px-3 py-1 rounded-full",
   statsGrid: "grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-2 lg:grid-cols-3 xl:grid-cols-3 mt-4 items-center space-x-4",
   
   // Timer display
@@ -716,12 +706,12 @@ export const sidebarStyles = {
   timerText: "text-sm font-mono",
   
   // Progress badges
-  questionBadge: "text-sm bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-3 py-2 rounded-full font-medium shadow-sm",
-  answeredBadgeQuiz: "text-sm bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 px-3 py-2 rounded-full font-medium shadow-sm",
+  questionBadge: "text-sm bg-blue-50 text-blue-800 px-3 py-2 rounded-full font-medium shadow-sm",
+  answeredBadgeQuiz: "text-sm bg-green-50 text-emerald-800 px-3 py-2 rounded-full font-medium shadow-sm",
   
   // Progress bar
-  mainProgressBarContainer: "w-full bg-gradient-to-r from-gray-200 to-gray-300 rounded-full h-2.5 mb-2",
-  mainProgressBar: "bg-gradient-to-r from-blue-400 to-purple-400 h-2.5 rounded-full transition-all duration-500",
+  mainProgressBarContainer: "w-full bg-gray-50 rounded-full h-2.5 mb-2",
+  mainProgressBar: "bg-[#15803D] h-2.5 rounded-full transition-all duration-500",
   
   // Question indicators
   questionIndicators: "flex flex-wrap gap-2 mt-4",
@@ -729,14 +719,14 @@ export const sidebarStyles = {
   currentQuestion: "ring-2 ring-blue-400 ring-offset-2",
   
   // Time warning
-  timeWarning: "mt-3 text-sm text-rose-600 flex items-center bg-gradient-to-r from-rose-50/80 to-pink-50/80 p-3 rounded-xl border border-rose-200/50",
+  timeWarning: "mt-3 text-sm text-rose-600 flex items-center bg-red-50 p-3 rounded-xl border border-gray-200",
   warningIcon: "mr-2",
   
   // Question card
-  questionCard: "bg-white/90 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-2xl border border-white/30 mb-6",
+  questionCard: "bg-white p-6 md:p-8 rounded-xl shadow-md border border-gray-200 mb-6",
   questionHeader: "mb-6 flex justify-between items-center",
   questionIconContainer: "flex items-center",
-  questionIcon: "bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 p-3 rounded-2xl mr-3 shadow-sm",
+  questionIcon: "bg-blue-50 text-blue-600 p-3 rounded-2xl mr-3 shadow-sm",
   questionTextContainer: "text-lg md:text-xl font-semibold text-slate-800",
   
   // Status badge
@@ -744,37 +734,37 @@ export const sidebarStyles = {
   
   // Options container
   optionsContainer: "space-y-4 mt-6",
-  optionButton: "w-full text-left p-5 mb-5 md:p-6 rounded-2xl border-2 transition-all duration-300 backdrop-blur-sm",
+  optionButton: "w-full text-left p-5 mb-5 md:p-6 rounded-2xl border-2 transition-all duration-300 ",
   optionButtonHover: "cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
   optionButtonDisabled: "cursor-default opacity-90",
   optionContent: "flex items-center",
   optionRadio: "w-6 h-6 rounded-full border-2 flex items-center justify-center mr-4 flex-shrink-0",
   optionText: "text-base md:text-lg",
-  correctAnswerBadge: "ml-auto text-xs bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 px-3 py-1.5 rounded-full font-medium",
+  correctAnswerBadge: "ml-auto text-xs bg-green-50 text-emerald-700 px-3 py-1.5 rounded-full font-medium",
   
   // Explanation section
-  explanationContainer: "mt-8 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 rounded-2xl border border-blue-200/50 backdrop-blur-sm",
+  explanationContainer: "mt-8 p-5 bg-blue-50 rounded-2xl border border-gray-200 ",
   explanationHeader: "flex items-center mb-3",
   explanationIcon: "text-blue-600 mr-3",
   explanationTitle: "font-semibold text-blue-700 text-lg",
-  explanationContent: "bg-white/50 p-4 rounded-xl backdrop-blur-sm",
+  explanationContent: "bg-white p-4 rounded-xl ",
   explanationText: "text-blue-800",
   
   // Navigation buttons
   navButtonsContainer: "flex flex-col sm:flex-row md:flex-col lg:flex-row justify-between items-center gap-4",
   prevButton: "flex items-center space-x-2 px-5 py-3 rounded-xl font-medium transition-all shadow-sm",
-  prevButtonEnabled: "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 hover:shadow-md",
-  prevButtonDisabled: "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-400 cursor-not-allowed",
+  prevButtonEnabled: "bg-blue-50 text-[#15803D] hover:bg-blue-100 hover:shadow-sm",
+  prevButtonDisabled: "bg-gray-50 text-gray-400 cursor-not-allowed",
   navRightContainer: "flex items-center space-x-3",
-  nextButton: "px-6 py-3 cursor-pointer bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300 transition-all shadow-md hover:shadow-lg flex items-center space-x-2",
-  submitButton: "px-8 cursor-pointer py-3 font-medium rounded-xl transition-all shadow-lg hover:shadow-xl",
-  submitButtonResults: "bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600",
-  submitButtonQuiz: "bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-600 hover:to-orange-600",
-  backToResultsButton: "px-8 cursor-pointer py-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg hover:shadow-xl",
+  nextButton: "px-6 py-3 cursor-pointer bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-all border border-gray-300 flex items-center space-x-2",
+  submitButton: "px-8 cursor-pointer py-3 font-medium rounded-xl transition-all shadow-lg hover:shadow-sm",
+  submitButtonResults: "bg-[#15803D] text-white hover:bg-[#14532D]",
+  submitButtonQuiz: "bg-[#16A34A] text-white hover:bg-[#15803D]",
+  backToResultsButton: "px-8 cursor-pointer py-3 bg-[#15803D] text-white font-medium rounded-xl hover:bg-[#14532D] transition-all shadow-sm",
   
   // Loading state
   loadingState: "h-full flex items-center justify-center py-20",
-  loadingCard: "text-center bg-white/90 backdrop-blur-xl p-8 md:p-12 rounded-3xl shadow-2xl border border-white/30",
+  loadingCard: "text-center bg-white p-8 md:p-12 rounded-xl shadow-md border border-gray-200",
   loadingSpinner: "animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4",
   loadingText: "text-lg md:text-xl font-semibold text-slate-800 mb-2",
   loadingSubtext: "text-sm md:text-base text-slate-600",

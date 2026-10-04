@@ -9,6 +9,6 @@ const router = express.Router();
 
 
 router.post("/save-result", protect, CreateMyResult);
-router.get("/my-result", getMyResults);
+router.get("/my-result", protect, getMyResults);
 
 export default router;

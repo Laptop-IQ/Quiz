@@ -31,7 +31,7 @@ import {
   PlayCircle,
   Brain,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useApi } from "../services/api/api";
 import {
   sidebarStyles,
@@ -83,6 +83,9 @@ const DEFAULT_PROGRESS = {
 const Sidebar = () => {
   const { request } = useApi();
   const navigate = useNavigate();
+  const location = useLocation();
+  const autoSelectedRef = useRef(false);
+  const pendingLevelRef = useRef(location.state?.initialLevel || null);
 
   const timerRef = useRef(null);
   const asideRef = useRef(null);
@@ -1029,6 +1032,14 @@ const Sidebar = () => {
 
         setQuestionsData(formatted);
         setTechnologies(techList.reverse());
+
+        // Deep-link support: if navigated here from the Test Series catalog
+        // with a chosen technology, auto-select it once.
+        const wantedTech = location.state?.initialTech;
+        if (wantedTech && !autoSelectedRef.current && formatted[wantedTech]) {
+          autoSelectedRef.current = true;
+          setSelectedTech(wantedTech);
+        }
       } catch (err) {
         console.error("FETCH ERROR:", err);
       }
@@ -1036,6 +1047,21 @@ const Sidebar = () => {
 
     loadQuizzes();
   }, [request]);
+
+  // After the tech is auto-selected from the Test Series flow, pick the level too
+  useEffect(() => {
+    const wantedTech = location.state?.initialTech;
+    if (
+      pendingLevelRef.current &&
+      wantedTech &&
+      selectedTech === wantedTech &&
+      questionsData?.[wantedTech]?.[pendingLevelRef.current]
+    ) {
+      const lvl = pendingLevelRef.current;
+      pendingLevelRef.current = null;
+      handleLevelSelect(lvl);
+    }
+  }, [selectedTech, questionsData]);
 
   useEffect(() => {
     try {
