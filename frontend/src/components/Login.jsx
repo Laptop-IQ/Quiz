@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { loginStyles } from "../assets/dummyStyles2";
 import { Mail, User, Lock, Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "";
@@ -14,8 +14,6 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const redirectTo = location.state?.from || "/dashboard";
 
   const fetchProfile = async (token) => {
     if (!token) return null;
@@ -54,9 +52,9 @@ const Login = ({ onLogin }) => {
       }
 
       if (typeof onLogin === "function") {
-        onLogin(profile, rememberMe, token, redirectTo);
+        onLogin(profile, rememberMe, token);
       } else {
-        navigate(redirectTo);
+        navigate("/dashboard", { replace: true });
       }
 
       setPassword("");

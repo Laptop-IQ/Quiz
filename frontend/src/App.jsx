@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Navigate,
   Route,
@@ -6,48 +6,39 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
-import ContactUs from "./pages/ContactUs";
-import VerifyOtp from "./components/VerifyOtp";
-import ForgotPassword from "./components/ForgotPassword";
-import Profile from "./pages/Profile";
 import axios from "axios";
-import NotificationBar from "./Context/NotificationBar";
-import Home from "./pages/Home";
-import Landing from "./pages/Landing";
-import SeriesInstructions from "./pages/SeriesInstructions";
-import SeriesStart from "./pages/SeriesStart";
-import ExamEngine from "./pages/ExamEngine";
-import TestSeries from "./pages/TestSeries";
-import MyResultPage from "./pages/MyResultPage";
-import Dashboard from "./pages/Dashboard";
-import DashboardLayout from "./components/DashboardShell/DashboardLayout";
 import RequireAuth from "./components/RequireAuth";
-import AttemptedTests from "./pages/AttemptedTests";
-import DashboardTestSeries from "./pages/DashboardTestSeries";
-import DashboardPractice from "./pages/DashboardPractice";
-import ComingSoon from "./pages/ComingSoon";
+import PageTitle from "./components/PageTitle";
+import { lazyPage } from "./routes/pages";
+
+// Route-level code splitting: each page is its own chunk, loaded on demand.
+const NotificationBar = lazy(() => import("./Context/NotificationBar"));
+const Login = lazyPage("Login");
+const Signup = lazyPage("Signup");
+const VerifyOtp = lazyPage("VerifyOtp");
+const ForgotPassword = lazyPage("ForgotPassword");
+const Landing = lazyPage("Landing");
+const TestSeries = lazyPage("TestSeries");
+const SeriesInstructions = lazyPage("SeriesInstructions");
+const SeriesStart = lazyPage("SeriesStart");
+const ExamEngine = lazyPage("ExamEngine");
+const MyResultPage = lazyPage("MyResultPage");
+const ResultAnalysis = lazyPage("ResultAnalysis");
+const DashboardLayout = lazyPage("DashboardLayout");
+const Dashboard = lazyPage("Dashboard");
+const DashboardTestSeries = lazyPage("DashboardTestSeries");
+const AttemptedTests = lazyPage("AttemptedTests");
+const ComingSoon = lazyPage("ComingSoon");
+const Profile = lazyPage("Profile");
+const ContactUs = lazyPage("ContactUs");
+
+const FullPageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 const API_BASE = import.meta.env.VITE_API_BASE;
-
-// to get transaction from localstorage
-const getTransactionsFromStorage = () => {
-  const saved = localStorage.getItem("transactions");
-  return saved ? JSON.parse(saved) : [];
-};
-
-// to protect the routes
-const ProtectedRoute = ({ user, children }) => {
-  const localToken = localStorage.getItem("token");
-  const sessionToken = sessionStorage.getItem("token");
-  const hasToken = localToken || sessionToken;
-
-  if (!user || !hasToken) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
 
 const ScrollToTop = () => {
   const location = useLocation();
@@ -57,11 +48,23 @@ const ScrollToTop = () => {
   return null;
 };
 
+const readStoredAuth = () => {
+  try {
+    const raw = localStorage.getItem("user") || sessionStorage.getItem("user");
+    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    return { user: raw ? JSON.parse(raw) : null, token };
+  } catch {
+    return { user: null, token: null };
+  }
+};
+
 const App = () => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(() => readStoredAuth().user);
+  // Only wait on the network when there is a token but no cached profile
+  const [isLoading, setIsLoading] = useState(() => {
+    const { user: u, token } = readStoredAuth();
+    return !u && !!token;
+  });
 
   const navigate = useNavigate();
 
@@ -79,7 +82,6 @@ const App = () => {
         localStorage.removeItem("token");
       }
       setUser(userObj || null);
-      setToken(tokenStr || null);
     } catch (err) {
       console.error("persistAuth error:", err);
     }
@@ -92,10 +94,9 @@ const App = () => {
       sessionStorage.removeItem("user");
       sessionStorage.removeItem("token");
     } catch (error) {
-      console.error("clearAuth error:", error); // fixed variable name
+      console.error("clearAuth error:", error);
     }
     setUser(null);
-    setToken(null);
   };
 
   // to update user data both in state and storage
@@ -108,7 +109,7 @@ const App = () => {
     if (localToken) {
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } else if (sessionToken) {
-      sessionToken.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
   // try to load user with token when mounted
@@ -127,10 +128,9 @@ const App = () => {
             ? JSON.parse(sessionUserRaw)
             : null;
         const storedToken = localToken || sessionToken || null;
-        const tokenFromlocal = !!localToken;
+        const tokenFromLocal = !!localToken;
         if (storedUser) {
-          setUser(storedUser);
-          setToken(storedToken);
+          // already initialised synchronously above
           setIsLoading(false);
           return;
         }
@@ -140,7 +140,7 @@ const App = () => {
               headers: { Authorization: `Bearer ${storedToken}` },
             });
             const profile = res.data;
-            persistAuth(profile, storedToken, tokenFromlocal);
+            persistAuth(profile, storedToken, tokenFromLocal);
           } catch (fetchErr) {
             console.warn(
               "Could not fetch profile with the stored token:",
@@ -153,31 +153,18 @@ const App = () => {
         console.error("error bootstrapping auth", err);
       } finally {
         setIsLoading(false);
-        try {
-          setTransactions(getTransactionsFromStorage());
-        } catch (txErr) {
-          console.error("Error loading transactions :", txErr);
-        }
       }
     })();
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("transactions", JSON.stringify(transactions));
-    } catch (err) {
-      console.error("error saving transactions:", err);
-    }
-  }, [transactions]);
 
   const handleLogin = (
     userData,
     remember = false,
     tokenFromApi = null,
-    redirectTo = "/dashboard",
   ) => {
     persistAuth(userData, tokenFromApi, remember);
-    navigate(redirectTo);
+    // SaaS-style entry point: every successful login starts at Dashboard.
+    navigate("/dashboard", { replace: true });
   };
 
   const handleSignup = (userData, remember = false, tokenFromApi = null) => {
@@ -189,18 +176,6 @@ const App = () => {
     clearAuth();
     navigate("/login");
   };
-
-  // transaction helpers
-  const addTransaction = (newTransaction) =>
-    setTransactions((p) => [newTransaction, ...p]);
-  const editTransaction = (id, updatedTransaction) =>
-    setTransactions((p) =>
-      p.map((t) => (t.id === id ? { ...updatedTransaction, id } : t)),
-    );
-  const deleteTransaction = (id) =>
-    setTransactions((p) => p.filter((t) => t.id !== id));
-  const refreshTransactions = () =>
-    setTransactions(getTransactionsFromStorage());
 
   if (isLoading) {
     return (
@@ -216,19 +191,29 @@ const App = () => {
   return (
     <>
       <ScrollToTop />
-      <NotificationBar />
+      <PageTitle />
+      <Suspense fallback={null}>
+        <NotificationBar />
+      </Suspense>
+      <Suspense fallback={<FullPageLoader />}>
       <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
+        />
+        <Route
+          path="/signup"
+          element={user ? <Navigate to="/dashboard" replace /> : <Signup onSignup={handleSignup} />}
+        />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/ForgotPassword" element={<ForgotPassword />} />
         <Route path="/" element={<Landing />} />
-        <Route path="/quiz" element={<Home />} />
         <Route path="/test-series" element={<TestSeries />} />
         <Route path="/test-series/:techId" element={<SeriesInstructions />} />
         <Route path="/test-series/:techId/start" element={<SeriesStart />} />
         <Route path="/exam/:techId/:level" element={<ExamEngine />} />
         <Route path="/result" element={<MyResultPage />} />
+        <Route path="/result/analysis" element={<ResultAnalysis />} />
         <Route
           path="/dashboard"
           element={
@@ -239,14 +224,21 @@ const App = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="test-series" element={<DashboardTestSeries />} />
-          <Route path="practice" element={<DashboardPractice />} />
           <Route path="attempted-tests" element={<AttemptedTests />} />
           <Route path="coming-soon" element={<ComingSoon />} />
         </Route>
 
-        <Route>
+        {/* Authenticated users stay inside the SaaS dashboard area. */}
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }
+        >
           <Route
-            path="/profile"
+            index
             element={
               <Profile
                 user={user}
@@ -255,14 +247,27 @@ const App = () => {
               />
             }
           />
-          <Route path="/ContactUs" element={<ContactUs />} />
         </Route>
 
         <Route
+          path="/contact"
+          element={
+            <RequireAuth>
+              <DashboardLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<ContactUs />} />
+        </Route>
+
+        <Route path="/ContactUs" element={<Navigate to="/contact" replace />} />
+
+        <Route
           path="*"
-          element={<Navigate to={user ? "/" : "/login"} replace />}
+          element={<Navigate to={user ? "/dashboard" : "/login"} replace />}
         />
       </Routes>
+      </Suspense>
     </>
   );
 };

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { adminSignupApi } from "../../services/api/adminAuthApi";
+
+const API = import.meta.env.VITE_API_BASE;
 
 const AdminSignup = () => {
   const navigate = useNavigate();
@@ -8,7 +10,17 @@ const AdminSignup = () => {
     name: "",
     email: "",
     password: "",
+    inviteCode: "",
   });
+  const [requiresInvite, setRequiresInvite] = useState(false);
+
+  // after the first admin exists, signup needs the server's invite code
+  useEffect(() => {
+    fetch(`${API}/admin-auth/signup-status`)
+      .then((r) => r.json())
+      .then((d) => setRequiresInvite(!!d.requiresInvite))
+      .catch(() => {});
+  }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,12 +83,31 @@ const AdminSignup = () => {
           <input
             type="password"
             name="password"
-            placeholder="Enter password"
+            placeholder="Password (min. 8 characters)"
+            minLength={8}
             value={form.password}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 outline-none"
             required
           />
+
+          {requiresInvite && (
+            <div>
+              <input
+                type="password"
+                name="inviteCode"
+                placeholder="Invite code"
+                value={form.inviteCode}
+                onChange={handleChange}
+                autoComplete="off"
+                className="w-full border rounded-lg px-4 py-3 outline-none"
+                required
+              />
+              <p className="mt-1.5 text-xs text-gray-500">
+                Admin accounts are invite-only. Ask an existing admin for the code (ADMIN_INVITE_CODE on the server).
+              </p>
+            </div>
+          )}
 
           <button
             type="submit"

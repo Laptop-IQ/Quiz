@@ -1,5 +1,18 @@
 import mongoose from "mongoose";
 
+// Exam families a test series can belong to ("tech" = the original tech-skills series)
+export const EXAM_CATEGORY_IDS = [
+  "tech",
+  "ssc",
+  "gate",
+  "banking",
+  "railways",
+  "upsc",
+  "defence",
+  "teaching",
+  "state-psc",
+];
+
 const questionSchema = new mongoose.Schema({
   question: {
     type: String,
@@ -51,6 +64,19 @@ const quizSchema = new mongoose.Schema(
       required: true,
     },
     totalQuestions: Number,
+
+    // ---- exam-prep fields (optional, safe defaults keep old quizzes working) ----
+    category: {
+      type: String,
+      enum: EXAM_CATEGORY_IDS,
+      lowercase: true,
+      trim: true,
+      default: "tech",
+    },
+    examName: { type: String, trim: true }, // display name, e.g. "SSC CGL"
+    marksPerQuestion: { type: Number, default: 1, min: 0 },
+    negativeMarking: { type: Number, default: 0, min: 0 }, // marks deducted per wrong answer
+
     createdBy: {
       type: String,
       required: true,

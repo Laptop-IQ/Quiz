@@ -14,7 +14,7 @@ import {
   updateProfileWithImage,
   deleteAccount,
 } from "../controllers/userController.js";
-import { getAllQuizzes } from "../controllers/adminController.js";
+import { getAllQuizzes, getQuizSummaries, getQuizByTechLevel } from "../controllers/adminController.js";
 
 import authMiddleware from "../middleware/auth.js";
 import { upload } from "../middleware/multer.js";
@@ -37,6 +37,8 @@ router.put("/password", authMiddleware, updatePassword);
 router.delete("/profile/photo", authMiddleware, removeProfilePhoto);
 
 router.get("/quizzes", authMiddleware, getAllQuizzes);
+router.get("/quizzes/summary", authMiddleware, getQuizSummaries);
+router.get("/quizzes/:technology/:level", authMiddleware, getQuizByTechLevel);
 
 router.post(
   "/profile/photo",

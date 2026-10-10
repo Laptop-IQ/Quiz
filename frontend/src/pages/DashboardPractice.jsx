@@ -1,4 +1,4 @@
-import React from "react";
+
 import QuizApp from "../components/Sidebar";
 
 // Practice, browsed from inside the dashboard shell (sidebar stays visible).

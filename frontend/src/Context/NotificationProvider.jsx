@@ -1,11 +1,15 @@
-import React, {
+import {
   createContext,
+  lazy,
+  Suspense,
   useContext,
   useState,
   useCallback,
   useEffect,
 } from "react";
-import NotificationBar from "../Context/NotificationBar";
+
+// Loaded after first paint: keeps framer-motion out of the critical bundle
+const NotificationBar = lazy(() => import("./NotificationBar"));
 
 const NotificationContext = createContext();
 
@@ -80,7 +84,9 @@ export const NotificationProvider = ({ children }) => {
       }}
     >
       {children}
-      <NotificationBar />
+      <Suspense fallback={null}>
+        <NotificationBar />
+      </Suspense>
     </NotificationContext.Provider>
   );
 };

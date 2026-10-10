@@ -91,7 +91,17 @@ app.use("/api/user/register", authLimiter);
 app.use("/api/user/forgot-password", authLimiter);
 app.use("/api/user/reset-password", authLimiter);
 
+// admin auth endpoints get the same brute-force protection
+app.use("/api/admin-auth/login", authLimiter);
+app.use("/api/admin-auth/signup", authLimiter);
+app.use("/api/admin-auth/forgot-password", authLimiter);
+app.use("/api/admin-auth/verify-otp", authLimiter);
+app.use("/api/admin-auth/reset-password", authLimiter);
+
 // 📦 Body parsing
+// Quiz uploads (hundreds of questions) are larger than 100kb; this parser must run
+// before the global one below, which would otherwise reject them with 413.
+app.use("/api/admin", express.json({ limit: "5mb" }));
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 

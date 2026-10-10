@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { navbarAnimations, navbarStyles } from "../assets/dummyStyles";
 import { Menu, X } from "react-feather"; // Hamburger & close icons
@@ -101,14 +101,6 @@ const Navbar = ({ logoSrc, quizType = "default" }) => {
                   className="hover:text-[#16A34A] cursor-pointer"
                 >
                   Test Series
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => goTo("/quiz")}
-                  className="hover:text-[#16A34A] cursor-pointer"
-                >
-                  Practice
                 </button>
               </li>
               {user && (

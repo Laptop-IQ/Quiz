@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useApi } from "../services/api/api";
 import { getStoredUser } from "../services/useSeries";
+import { fetchResults, invalidateResults } from "../services/useMyResults";
 import ExamHeader from "../components/Exam/ExamHeader";
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -129,24 +130,84 @@ export default function ExamEngine() {
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | guest | error
 
   const submittingRef = useRef(false);
+  // Real active time (seconds) - excludes pauses and works even when the quiz has no time limit
+  const elapsedRef = useRef(0);
+
+  /* ---------- PER-QUESTION TIME TRACKING ---------- */
+  const questionTimesRef = useRef({}); // { qIndex: secondsSpent }
+  const questionStartRef = useRef(null);
+  const qIndexRef = useRef(0);
+  useEffect(() => {
+    qIndexRef.current = qIndex;
+  }, [qIndex]);
+
+  // start the clock the moment the quiz becomes visible
+  useEffect(() => {
+    if (quiz && questionStartRef.current === null) {
+      questionStartRef.current = Date.now();
+    }
+  }, [quiz]);
+
+  // pausing banks the time so far and stops the clock; resuming restarts it,
+  // so paused time is never counted against a question
+  const wasPausedRef = useRef(isPaused);
+  useEffect(() => {
+    if (!quiz) return;
+    if (isPaused && !wasPausedRef.current) {
+      const spent = questionStartRef.current
+        ? (Date.now() - questionStartRef.current) / 1000
+        : 0;
+      questionTimesRef.current[qIndexRef.current] =
+        (questionTimesRef.current[qIndexRef.current] || 0) + spent;
+      questionStartRef.current = null;
+    } else if (!isPaused && wasPausedRef.current) {
+      questionStartRef.current = Date.now();
+    }
+    wasPausedRef.current = isPaused;
+  }, [isPaused, quiz]);
+
+  // call before every navigation (Previous/Next/palette click/submit) to
+  // bank the time spent on the question being left, then restart the clock
+  const bankCurrentQuestionTime = (forIndex = qIndexRef.current) => {
+    if (questionStartRef.current === null) return;
+    const spent = (Date.now() - questionStartRef.current) / 1000;
+    questionTimesRef.current[forIndex] =
+      (questionTimesRef.current[forIndex] || 0) + spent;
+    questionStartRef.current = Date.now();
+  };
+
+  // wraps setQIndex so time is always banked against the question being left
+  const goToQuestion = (next) => {
+    bankCurrentQuestionTime();
+    setQIndex(next);
+  };
 
   /* ---------- LOAD REAL QUIZ DATA ---------- */
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const data = await request("/user/quizzes");
-        const found = data.find(
-          (q) =>
-            q.technology?.toLowerCase() === techId &&
-            q.level?.toLowerCase() === level.toLowerCase(),
-        );
+        // Fetch just this quiz; fall back to the full list on an older backend.
+        let found = null;
+        try {
+          found = await request(
+            `/user/quizzes/${encodeURIComponent(techId)}/${encodeURIComponent(level)}`,
+          );
+        } catch {
+          const data = await request("/user/quizzes");
+          found = data.find(
+            (q) =>
+              q.technology?.toLowerCase() === techId &&
+              q.level?.toLowerCase() === level.toLowerCase(),
+          );
+        }
         if (!active) return;
         if (!found) return setLoadError("This test was not found.");
 
         const questions = found.questions.map((q) => ({
           text: q.question,
           options: q.options,
+          topic: q.topic || "General",
           correct: LETTERS.indexOf(String(q.answerKey).toUpperCase()),
         }));
         const total = (found.timeLimit || 0) * 60;
@@ -158,13 +219,23 @@ export default function ExamEngine() {
           saved = null;
         }
 
-        setQuiz({ questions, total, level: found.level });
+        setQuiz({
+          questions,
+          total,
+          level: found.level,
+          category: found.category || "tech",
+          examName: found.examName || "",
+          marksPerQuestion: found.marksPerQuestion ?? 1,
+          negativeMarking: found.negativeMarking ?? 0,
+        });
         if (saved) {
           setAnswers(saved.answers || {});
           setReview(saved.review || {});
           setVisited(saved.visited || {});
           setQIndex(saved.qIndex || 0);
           setTimeLeft(saved.timeLeft ?? total);
+          elapsedRef.current =
+            saved.elapsed ?? (total > 0 && saved.timeLeft != null ? Math.max(0, total - saved.timeLeft) : 0);
           if (saved.isPaused) {
             setIsPaused(true);
             setDialog("paused");
@@ -186,7 +257,7 @@ export default function ExamEngine() {
     if (!quiz || result) return;
     localStorage.setItem(
       storageKey,
-      JSON.stringify({ answers, review, visited, qIndex, timeLeft, isPaused }),
+      JSON.stringify({ answers, review, visited, qIndex, timeLeft, isPaused, elapsed: elapsedRef.current }),
     );
   }, [quiz, result, answers, review, visited, qIndex, timeLeft, isPaused, storageKey]);
 
@@ -214,19 +285,80 @@ export default function ExamEngine() {
     setDialog(null);
     setPopover(null);
     if (document.fullscreenElement) document.exitFullscreen?.();
+    bankCurrentQuestionTime();
 
     let correct = 0;
     let wrong = 0;
-    quiz.questions.forEach((q, i) => {
-      if (answers[i] === undefined) return;
-      if (answers[i] === q.correct) correct++;
-      else wrong++;
+    const questionDetails = quiz.questions.map((q, i) => {
+      const yourIndex = answers[i];
+      const status =
+        yourIndex === undefined
+          ? "skipped"
+          : yourIndex === q.correct
+            ? "correct"
+            : "wrong";
+      if (status === "correct") correct++;
+      if (status === "wrong") wrong++;
+      return {
+        questionNumber: i + 1,
+        text: q.text,
+        options: q.options,
+        topic: q.topic || "General",
+        correctIndex: q.correct,
+        yourIndex: yourIndex ?? null,
+        status,
+        timeTaken: Math.round(questionTimesRef.current[i] || 0),
+      };
     });
     const total = quiz.questions.length;
-    const timeTaken = Math.max(0, quiz.total - timeLeft);
+    // Real active time; capped at the time limit when the quiz has one
+    const elapsed = Math.round(elapsedRef.current);
+    const timeTaken = Math.max(0, quiz.total > 0 ? Math.min(elapsed, quiz.total) : elapsed);
 
-    setResult({ correct, wrong, unattempted: total - correct - wrong, total, timeTaken });
+    // Marks follow the exam's own scheme (e.g. +2 per correct, -0.5 per wrong)
+    const marksPerQuestion = quiz.marksPerQuestion ?? 1;
+    const negativeMarking = quiz.negativeMarking ?? 0;
+    const round2 = (n) => Math.round(n * 100) / 100;
+    const marksObtained = round2(correct * marksPerQuestion - wrong * negativeMarking);
+    const totalMarks = round2(total * marksPerQuestion);
+
+    setResult({
+      correct,
+      wrong,
+      unattempted: total - correct - wrong,
+      total,
+      timeTaken,
+      marksObtained,
+      totalMarks,
+      marksPerQuestion,
+      negativeMarking,
+    });
     localStorage.removeItem(storageKey);
+
+    try {
+      sessionStorage.setItem(
+        "techQuizLastAttempt",
+        JSON.stringify({
+          technology: techId,
+          level: quiz.level,
+          category: quiz.category,
+          examName: quiz.examName,
+          total,
+          correct,
+          wrong,
+          unattempted: total - correct - wrong,
+          marksObtained,
+          totalMarks,
+          marksPerQuestion,
+          negativeMarking,
+          timeTaken,
+          createdAt: new Date().toISOString(),
+          questions: questionDetails,
+        }),
+      );
+    } catch {
+      /* sessionStorage may be unavailable (private mode, quota) - skip silently */
+    }
 
     if (hasToken()) {
       setSaveState("saving");
@@ -239,7 +371,10 @@ export default function ExamEngine() {
           wrong,
           timeTaken,
           startDate: new Date(Date.now() - timeTaken * 1000),
+          questionAnalysis: questionDetails,
         });
+        invalidateResults();
+        fetchResults({ force: true }).catch(() => {});
         setSaveState("saved");
       } catch {
         setSaveState("error");
@@ -247,7 +382,7 @@ export default function ExamEngine() {
     } else {
       setSaveState("guest");
     }
-  }, [quiz, answers, timeLeft, request, techId, storageKey]);
+  }, [quiz, answers, request, techId, storageKey]);
 
   /* ---------- TIMER (timestamp based, so it stays accurate) ---------- */
   const timeLeftRef = useRef(0);
@@ -258,10 +393,21 @@ export default function ExamEngine() {
   useEffect(() => {
     if (!quiz || result || isPaused) return;
     const endAt = Date.now() + timeLeftRef.current * 1000;
-    const tick = () =>
+    let last = Date.now();
+    const accumulate = () => {
+      const now = Date.now();
+      elapsedRef.current += (now - last) / 1000;
+      last = now;
+    };
+    const tick = () => {
+      accumulate();
       setTimeLeft(Math.max(0, Math.ceil((endAt - Date.now()) / 1000)));
+    };
     const t = setInterval(tick, 250);
-    return () => clearInterval(t);
+    return () => {
+      clearInterval(t);
+      accumulate(); // bank the partial interval on pause / submit
+    };
   }, [quiz, result, isPaused]);
 
   useEffect(() => {
@@ -304,7 +450,10 @@ export default function ExamEngine() {
     return "notVisited";
   };
 
-  const goNext = () => setQIndex((i) => Math.min(i + 1, quiz.questions.length - 1));
+  const goNext = () => {
+    bankCurrentQuestionTime();
+    setQIndex((i) => Math.min(i + 1, quiz.questions.length - 1));
+  };
   const saveAndNext = () => goNext();
 
   const toggleReview = () => {
@@ -368,7 +517,9 @@ export default function ExamEngine() {
 
   /* ================= RESULT ================= */
   if (result) {
-    const pct = result.total ? Math.round((result.correct / result.total) * 100) : 0;
+    const attemptedCount = result.correct + result.wrong;
+    const pct = attemptedCount ? Math.round((result.correct / attemptedCount) * 100) : 0;
+    const hasScheme = result.negativeMarking > 0 || result.marksPerQuestion !== 1;
     const mins = Math.floor(result.timeTaken / 60);
     const secs = result.timeTaken % 60;
     return (
@@ -378,12 +529,18 @@ export default function ExamEngine() {
           <p className="text-center text-green-600 font-semibold mt-1">Test Submitted Successfully ✅</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 text-center">
-            <div className="bg-green-50 rounded p-4"><p className="text-xs text-gray-600">Score</p><p className="text-xl font-bold">{result.correct}/{result.total}</p></div>
+            <div className="bg-green-50 rounded p-4"><p className="text-xs text-gray-600">{hasScheme ? "Marks" : "Score"}</p><p className="text-xl font-bold">{hasScheme ? `${result.marksObtained}/${result.totalMarks}` : `${result.correct}/${result.total}`}</p></div>
             <div className="bg-blue-50 rounded p-4"><p className="text-xs text-gray-600">Accuracy</p><p className="text-xl font-bold">{pct}%</p></div>
             <div className="bg-yellow-50 rounded p-4"><p className="text-xs text-gray-600">Correct / Wrong</p><p className="text-xl font-bold">{result.correct} / {result.wrong}</p></div>
             <div className="bg-purple-50 rounded p-4"><p className="text-xs text-gray-600">Time Taken</p><p className="text-xl font-bold">{mins}m {secs}s</p></div>
           </div>
           <p className="text-center text-sm text-gray-500 mt-3">Unattempted: {result.unattempted}</p>
+          {hasScheme && (
+            <p className="text-center text-xs text-gray-500 mt-1">
+              Marking scheme: +{result.marksPerQuestion} per correct answer
+              {result.negativeMarking > 0 ? `, −${result.negativeMarking} per wrong answer` : ", no negative marking"}
+            </p>
+          )}
 
           <p className="text-center text-sm mt-3">
             {saveState === "saving" && <span className="text-gray-500">Saving result...</span>}
@@ -393,6 +550,12 @@ export default function ExamEngine() {
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mt-6">
+            <button
+              onClick={() => navigate("/result/analysis")}
+              className="bg-[#16A34A] hover:bg-[#15803D] text-white px-5 py-2 rounded cursor-pointer font-medium"
+            >
+              View Detailed Analysis
+            </button>
             <button onClick={() => setShowReview((s) => !s)} className="bg-blue-600 text-white px-5 py-2 rounded cursor-pointer">
               {showReview ? "Hide Solutions" : "Review Solutions"}
             </button>
@@ -471,7 +634,16 @@ export default function ExamEngine() {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pt-3">
               <span className="bg-[#008000] text-white font-bold tracking-wider text-[16px] px-[8px] py-[4px] rounded">PART-A</span>
               <div className="flex flex-wrap items-center gap-[15px] lg:ml-[270px]">
-                {qIndex > 0 && <Btn onClick={() => setQIndex((i) => Math.max(i - 1, 0))}>Previous</Btn>}
+                {qIndex > 0 && (
+                  <Btn
+                    onClick={() => {
+                      bankCurrentQuestionTime();
+                      setQIndex((i) => Math.max(i - 1, 0));
+                    }}
+                  >
+                    Previous
+                  </Btn>
+                )}
                 <Btn onClick={toggleReview}>{review[qIndex] ? "Unmark Review" : "Mark for Review"}</Btn>
                 <Btn onClick={saveAndNext}>Save &amp; Next</Btn>
                 <Btn onClick={() => setDialog("section")}>Submit Section</Btn>
@@ -599,7 +771,7 @@ export default function ExamEngine() {
 
             <div className="grid grid-cols-6 gap-y-[26px] px-[6px] mt-[36px] justify-items-center">
               {quiz.questions.map((_, i) => (
-                <Pal key={i} status={statusOf(i)} current={i === qIndex} onClick={() => setQIndex(i)}>
+                <Pal key={i} status={statusOf(i)} current={i === qIndex} onClick={() => goToQuestion(i)}>
                   {i + 1}
                 </Pal>
               ))}

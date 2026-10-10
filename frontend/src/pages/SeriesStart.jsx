@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useSeries, { getStoredUser } from "../services/useSeries";
 import FlowHeader from "../components/Exam/FlowHeader";
@@ -30,11 +30,11 @@ const SeriesStart = () => {
     : "";
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-white">
       <FlowHeader title={title || "Loading..."} />
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-white">
           {isLoading && <p className="p-6 text-gray-500">Loading...</p>}
           {!isLoading && (error || !series) && (
             <p className="p-6 text-red-600">
@@ -43,79 +43,75 @@ const SeriesStart = () => {
           )}
 
           {!isLoading && series && current && (
-            <div className="max-w-4xl mx-auto border border-gray-200 my-1">
-              <div className="bg-white border-b border-gray-200 p-6">
-                <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
-                  {title}
-                </h1>
+            <div className="p-6 md:p-8">
+              <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+                {title}
+              </h1>
 
-                <div className="flex justify-between text-base mb-5 text-gray-800 font-semibold">
-                  <span>
-                    Duration:{" "}
-                    {current.timeLimit ? `${current.timeLimit} Mins` : "No limit"}
-                  </span>
-                  <span>Maximum Marks: {current.questionCount}</span>
-                </div>
-
-                <p className="font-bold text-base mb-3 text-gray-800">
-                  Read the following instructions carefully.
-                </p>
-
-                <ol className="list-decimal ml-8 space-y-2 text-[15px] text-gray-700">
-                  <li>The test contains {current.questionCount} total questions.</li>
-                  <li>
-                    Each question has 4 options out of which only one is correct.
-                  </li>
-                  {current.timeLimit > 0 && (
-                    <li>
-                      You have to finish the test in {current.timeLimit} minutes.
-                    </li>
-                  )}
-                  <li>You will be awarded 1 mark for each correct answer.</li>
-                  <li>
-                    There is no negative marking for wrong or unattempted
-                    questions.
-                  </li>
-                </ol>
+              <div className="flex justify-between text-base mb-5 text-gray-800 font-semibold">
+                <span>
+                  Duration:{" "}
+                  {current.timeLimit ? `${current.timeLimit} Mins` : "No limit"}
+                </span>
+                <span>Maximum Marks: {current.questionCount}</span>
               </div>
 
-              <div className="bg-white p-6 space-y-6">
-                <div>
-                  <label className="text-base font-bold text-gray-800 block mb-3">
-                    Choose your level:{" "}
-                    <select
-                      value={activeLevel}
-                      onChange={(e) => setLevelId(e.target.value)}
-                      className="border border-gray-300 px-2 py-1 text-base rounded hover:border-gray-400 capitalize font-normal"
-                    >
-                      {series.levels.map((l) => (
-                        <option key={l.level} value={l.level}>
-                          {l.level}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <p className="text-red-600 text-sm mt-3">
-                    Please note the level cannot be changed once the test has
-                    started.
-                  </p>
-                </div>
+              <p className="font-bold text-base mb-3 text-gray-800">
+                Read the following instructions carefully.
+              </p>
 
-                <div>
-                  <p className="font-bold text-base text-black mb-1">
-                    Declaration:
+              <ol className="list-decimal ml-8 space-y-2 text-[15px] text-gray-700">
+                <li>The test contains {current.questionCount} total questions.</li>
+                <li>
+                  Each question has 4 options out of which only one is correct.
+                </li>
+                {current.timeLimit > 0 && (
+                  <li>
+                    You have to finish the test in {current.timeLimit} minutes.
+                  </li>
+                )}
+                <li>You will be awarded 1 mark for each correct answer.</li>
+                <li>
+                  There is no negative marking for wrong or unattempted
+                  questions.
+                </li>
+              </ol>
+
+              <div className="border-t border-gray-200 mt-7 pt-6">
+                <label className="text-base font-bold text-gray-800 block mb-3">
+                  Choose your level:{" "}
+                  <select
+                    value={activeLevel}
+                    onChange={(e) => setLevelId(e.target.value)}
+                    className="border border-gray-300 px-2 py-1 text-base rounded hover:border-gray-400 capitalize font-normal"
+                  >
+                    {series.levels.map((l) => (
+                      <option key={l.level} value={l.level}>
+                        {l.level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="text-red-600 text-sm mt-3">
+                  Please note the level cannot be changed once the test has
+                  started.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <p className="font-bold text-base text-black mb-1">
+                  Declaration:
+                </p>
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 w-4 h-4 cursor-pointer flex-shrink-0"
+                    checked={checked}
+                    onChange={(e) => setChecked(e.target.checked)}
+                  />
+                  <p className="text-base text-gray-800 leading-relaxed">
+                    {declaration}
                   </p>
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      className="mt-1 w-4 h-4 cursor-pointer flex-shrink-0"
-                      checked={checked}
-                      onChange={(e) => setChecked(e.target.checked)}
-                    />
-                    <p className="text-base text-gray-800 leading-relaxed">
-                      {declaration}
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>

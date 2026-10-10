@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
 import useSeries, { getStoredUser } from "../services/useSeries";
 import FlowHeader from "../components/Exam/FlowHeader";
@@ -62,6 +62,25 @@ const SeriesInstructions = () => {
 
           {!isLoading && series && (
             <div className="p-6 md:p-8 text-[15px] text-gray-800 leading-relaxed max-w-4xl">
+              <div className="mb-6 rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                <p className="font-bold">Marking scheme</p>
+                <ul className="mt-1.5 list-disc space-y-0.5 pl-5">
+                  <li>
+                    Each correct answer: <b>+{series.marksPerQuestion ?? 1}</b>{" "}
+                    {(series.marksPerQuestion ?? 1) === 1 ? "mark" : "marks"}
+                  </li>
+                  <li>
+                    Each wrong answer:{" "}
+                    {series.negativeMarking > 0 ? (
+                      <b>&minus;{series.negativeMarking} marks (negative marking)</b>
+                    ) : (
+                      <b>no negative marking</b>
+                    )}
+                  </li>
+                  <li>Unattempted questions carry no marks.</li>
+                </ul>
+              </div>
+
               <h2 className="font-bold text-lg mb-3">General Instructions:</h2>
 
               <ol className="list-decimal ml-6 space-y-4">

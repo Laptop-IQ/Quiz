@@ -1,37 +1,35 @@
-import React from "react";
 import TestSeriesCard from "./TestSeriesCard";
 import useAllSeries from "../../services/useAllSeries";
 
-// The grid part of "All Test Series", reused by the public /test-series
-// page and by /dashboard/test-series (rendered inside the sidebar shell).
-const TestSeriesGrid = ({ title = "All Test Series" }) => {
-  const { series, isLoading, error } = useAllSeries();
+const TestSeriesGrid = ({ title = "All Test Series", items, isLoading: externalLoading = false }) => {
+  // Only fetch when the parent did not pass items (avoids a duplicate request)
+  const fallback = useAllSeries(items === undefined);
+  const series = items ?? fallback.series;
+  const isLoading = items === undefined ? fallback.isLoading : externalLoading;
+  const error = items === undefined ? fallback.error : null;
 
   return (
-    <div>
-      {title && <h1 className="text-3xl font-semibold mb-10">{title}</h1>}
+    <div className="test-series-grid-wrap">
+      {title && <h2 className="mb-6 text-xl font-semibold text-white">{title}</h2>}
 
       {isLoading && (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-500" />
+        <div className="test-series-grid">
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="test-series-skeleton" />)}
         </div>
       )}
 
-      {!isLoading && error && (
-        <p className="text-center text-red-600 py-10">{error}</p>
-      )}
+      {!isLoading && error && <p className="rounded-2xl border border-red-400/20 bg-red-500/10 py-10 text-center text-red-300">{error}</p>}
 
       {!isLoading && !error && series.length === 0 && (
-        <p className="text-center text-gray-500 py-10">
-          No test series available yet.
-        </p>
+        <div className="test-series-empty">
+          <p>No test series found.</p>
+          <span>Try another search or check back later.</span>
+        </div>
       )}
 
       {!isLoading && !error && series.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {series.map((item) => (
-            <TestSeriesCard key={item.id} item={item} />
-          ))}
+        <div className="test-series-grid">
+          {series.map((item) => <TestSeriesCard key={item.id} item={item} />)}
         </div>
       )}
     </div>

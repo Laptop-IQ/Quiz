@@ -1,12 +1,48 @@
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import Admin from "../models/Admin.js";
 import generateOtp from "../utils/admingenerateOtp.js";
 import generateToken from "../utils/generateToken.js";
 import sendEmail from "../utils/sendEmail.js";
 
+// Constant-time comparison so the invite code can't be guessed by timing
+const sameSecret = (a, b) => {
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+};
+
+// Tells the signup page whether an invite code is needed (true once any admin exists)
+export const adminSignupStatus = async (req, res) => {
+  try {
+    const count = await Admin.estimatedDocumentCount();
+    return res.json({ success: true, requiresInvite: count > 0 });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export const adminSignup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, inviteCode } = req.body;
+
+    // The very first admin can sign up freely. After that, creating an admin
+    // needs the ADMIN_INVITE_CODE secret - otherwise anyone could register as admin.
+    if ((await Admin.estimatedDocumentCount()) > 0) {
+      const secret = process.env.ADMIN_INVITE_CODE;
+      if (!secret) {
+        return res.status(403).json({
+          success: false,
+          message: "Admin signup is closed. Set ADMIN_INVITE_CODE on the server to invite new admins.",
+        });
+      }
+      if (!inviteCode || !sameSecret(inviteCode, secret)) {
+        return res.status(403).json({
+          success: false,
+          message: "A valid invite code is required to create an admin account",
+        });
+      }
+    }
 
     if (!name?.trim() || !email?.trim() || !password?.trim()) {
       return res.status(400).json({
@@ -15,10 +51,10 @@ export const adminSignup = async (req, res) => {
       });
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 6 characters",
+        message: "Password must be at least 8 characters",
       });
     }
 

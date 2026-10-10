@@ -1,7 +1,6 @@
 import {
   Home,
   ClipboardList,
-  Clock,
   CheckCircle,
   Book,
   MonitorPlay,
@@ -9,6 +8,8 @@ import {
   Bookmark,
   AlertTriangle,
   Trophy,
+  User,
+  Mail,
 } from "lucide-react";
 
 // `to` items are real, working pages. `soon: true` items open a
@@ -22,17 +23,25 @@ export const MENU = [
   {
     section: "Tests",
     items: [
-      { label: "Test Series", to: "/dashboard/test-series", icon: ClipboardList },
-      { label: "Practice", to: "/dashboard/practice", icon: Clock },
-      { label: "Attempted Tests", to: "/dashboard/attempted-tests", icon: CheckCircle },
+      {
+        label: "Test Series",
+        to: "/dashboard/test-series",
+        icon: ClipboardList,
+      },
+      {
+        label: "Attempted Tests",
+        to: "/dashboard/attempted-tests",
+        icon: CheckCircle,
+      },
+      { label: "Previous Year Papers", soon: true, icon: FileText },
     ],
   },
+ 
   {
-    section: "Learn",
+    section: "Account",
     items: [
-      { label: "Books", soon: true, icon: Book },
-      { label: "Live Tests & Quizzes", soon: true, icon: MonitorPlay },
-      { label: "Previous Year Papers", soon: true, icon: FileText },
+      { label: "Profile", to: "/profile", icon: User },
+      { label: "Contact Us", to: "/contact", icon: Mail },
     ],
   },
   {
@@ -40,7 +49,6 @@ export const MENU = [
     items: [
       { label: "Saved Questions", soon: true, icon: Bookmark },
       { label: "Reported Questions", soon: true, icon: AlertTriangle },
-      { label: "Rank Predictor", soon: true, icon: Trophy, badge: "NEW" },
     ],
   },
 ];

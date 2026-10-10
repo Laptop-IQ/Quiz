@@ -26,15 +26,15 @@ const DashboardTopbar = ({ title = "Dashboard" }) => {
   };
 
   return (
-    <div className="flex justify-between items-center bg-[#121212] px-4 sm:px-8 py-4 shadow relative">
-      <h1 className="font-bold text-lg text-yellow-300 pl-10 md:pl-0">{title}</h1>
+    <div className="sticky top-0 z-20 flex h-16 min-w-0 max-w-full items-center justify-between border-b border-white/10 bg-[#0b1120]/90 px-4 pl-14 shadow-[0_10px_30px_rgba(0,0,0,.18)] backdrop-blur-xl sm:px-6 md:pl-6">
+      <h1 className="min-w-0 truncate pr-4 text-lg font-semibold tracking-tight text-white">{title}</h1>
 
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen((s) => !s)}
           className="flex items-center gap-2 text-white cursor-pointer"
         >
-          <span className="w-8 h-8 rounded-full bg-[#16A34A] flex items-center justify-center font-semibold uppercase text-sm">
+          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center font-bold uppercase text-sm shadow-lg shadow-cyan-500/20">
             {(user?.name || user?.email || "U").charAt(0)}
           </span>
           <ChevronDown size={16} className={`transition-transform ${open ? "rotate-180" : ""}`} />

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import { useNotifications } from "../Context/NotificationProvider";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
@@ -44,21 +45,22 @@ const DeleteAccount = () => {
       {/* Delete Button */}
       <button
         onClick={() => setShowModal(true)}
-        className="bg-linear-to-r from-red-500 to-pink-500 hover:scale-105 transition transform text-white px-5 py-2 rounded-xl shadow-lg"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-5 text-sm font-bold text-rose-700 transition hover:bg-rose-600 hover:text-white"
       >
-        ⚠️ Delete My Account
+        <Trash2 size={15} /> Delete My Account
       </button>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-xl w-80 shadow-xl">
-            <h2 className="text-red-600 font-semibold text-lg mb-2">
-              Delete Account
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+              <Trash2 size={19} />
+            </div>
+            <h2 className="mb-1 text-lg font-extrabold text-slate-950">Delete Account</h2>
+            <p className="mb-4 text-sm leading-6 text-slate-500">
               This action is permanent. Type{" "}
-              <span className="font-bold">DELETE</span> to confirm.
+              <span className="font-extrabold text-rose-600">DELETE</span> to confirm.
             </p>
 
             <input
@@ -66,14 +68,14 @@ const DeleteAccount = () => {
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="Type DELETE here"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="mb-4 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:bg-white focus:ring-4 focus:ring-rose-100"
             />
 
             <div className="flex gap-3">
               <button
                 onClick={handleDelete}
                 disabled={confirmText !== "DELETE" || loading}
-                className="flex-1 bg-red-500 text-white py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-11 flex-1 rounded-xl bg-rose-600 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? "Deleting..." : "Confirm Delete"}
               </button>
@@ -84,7 +86,7 @@ const DeleteAccount = () => {
                   setConfirmText("");
                 }}
                 disabled={loading}
-                className="flex-1 bg-gray-300 py-2 rounded-lg"
+                className="h-11 flex-1 rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700 transition hover:bg-slate-50"
               >
                 Cancel
               </button>

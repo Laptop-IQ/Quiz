@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   animate,
   motion,
   useAnimationFrame,
   useMotionValue,
 } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import useAllSeries from "../../services/useAllSeries";
 import TestSeriesCard from "./TestSeriesCard";
 
@@ -72,11 +74,27 @@ const PopularSeries = () => {
   if (series.length === 0) return null;
 
   return (
-    <section className="bg-blue-50 py-6 overflow-hidden">
-      <div className="max-w-6xl mx-auto px-12">
-        <h2 className="text-2xl font-semibold text-black mb-10">
-          Popular Test Series
-        </h2>
+    <section className="relative overflow-hidden bg-[#070d1a] py-20">
+      <div className="pointer-events-none absolute -left-32 top-0 h-80 w-80 rounded-full bg-cyan-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-violet-500/15 blur-3xl" />
+
+      <div className="relative mx-auto max-w-6xl px-6 sm:px-12">
+        <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">Most attempted</span>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">Popular Test Series</h2>
+            <p className="mt-2 max-w-md text-sm text-slate-400">
+              Pick your exam, start from Basic and work your way up to Advanced.
+            </p>
+          </div>
+          <Link
+            to="/test-series"
+            className="group inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-bold text-white transition hover:border-cyan-400/50 hover:bg-white/10"
+          >
+            View all series
+            <ArrowRight size={16} className="transition group-hover:translate-x-1" />
+          </Link>
+        </div>
 
         <div ref={wrapRef} className="overflow-hidden">
           {animated ? (

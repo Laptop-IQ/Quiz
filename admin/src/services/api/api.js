@@ -1,53 +1,56 @@
-import { useCallback } from "react";
+const BASE_URL = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_BASE_URL;
 
-const BASE_URL = import.meta.env.VITE_API_BASE;
+export const getAdminToken = () => localStorage.getItem("adminToken");
 
-export const apiRequest = async (endpoint, method = "GET", body = null) => {
-  const token =
-  localStorage.getItem("adminToken")
-  localStorage.getItem("token") ||
-  localStorage.getItem("clerkToken");
+export const clearAdminSession = () => {
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("adminData");
+};
 
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+export const request = async (endpoint, options = {}) => {
+  const token = getAdminToken();
+  const hasBody = options.body !== undefined && !(options.body instanceof FormData);
 
-  if (token) {
-    options.headers.Authorization = `Bearer ${token}`;
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        ...(hasBody ? { "Content-Type": "application/json" } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...options.headers,
+      },
+      body: hasBody ? JSON.stringify(options.body) : options.body,
+    });
+  } catch {
+    throw new Error("Cannot reach the server. Check your connection and try again.");
   }
 
-  if (body) {
-    options.body = JSON.stringify(body);
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    /* non-JSON response */
   }
 
-  const res = await fetch(`${BASE_URL}${endpoint}`, options);
-
- if (res.status === 401) {
-   throw new Error("Unauthorized");
- }
-
-  if (res.status === 429) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || "Too many requests, please try again later.",
-    );
+  // expired / invalid admin token -> back to the login screen
+  if (res.status === 401) {
+    clearAdminSession();
+    const path = window.location.pathname;
+    if (path !== "/login" && !path.startsWith("/admin/")) {
+      window.location.assign("/login");
+    }
   }
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || "API ERROR");
+    throw new Error(data?.message || data?.error || `Request failed (${res.status})`);
   }
-
-  return res.json();
+  return data;
 };
 
-export const useApi = () => {
-  const request = useCallback((endpoint, method = "GET", body = null) => {
-    return apiRequest(endpoint, method, body);
-  }, []);
-
-  return { request };
+export const api = {
+  get: (endpoint) => request(endpoint),
+  post: (endpoint, body) => request(endpoint, { method: "POST", body }),
+  put: (endpoint, body) => request(endpoint, { method: "PUT", body }),
+  del: (endpoint) => request(endpoint, { method: "DELETE" }),
 };

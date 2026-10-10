@@ -2,12 +2,13 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronLeft } from "lucide-react";
 import { MENU } from "./menuConfig";
+import { preloadRoute } from "../../routes/pages";
 
 const linkCls = (isActive, collapsed) =>
-  `group relative flex items-center gap-3 px-4 py-2.5 text-sm cursor-pointer ${
+  `group relative flex min-w-0 items-center gap-3 mx-2 my-1 px-3 py-2.5 rounded-xl text-sm cursor-pointer transition-all duration-200 ${
     isActive
-      ? "bg-gray-700 text-white"
-      : "text-gray-400 hover:bg-gray-700/60 hover:text-white"
+      ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/10 text-white ring-1 ring-cyan-400/20"
+      : "text-slate-400 hover:bg-white/5 hover:text-white"
   } ${collapsed ? "justify-center" : ""}`;
 
 const Item = ({ item, collapsed, onClick }) => {
@@ -21,12 +22,12 @@ const Item = ({ item, collapsed, onClick }) => {
           onClick?.();
           navigate("/dashboard/coming-soon", { state: { label: item.label } });
         }}
-        className={linkCls(false, collapsed) + " w-full text-left"}
+        className={linkCls(false, collapsed) + " w-[calc(100%-1rem)] text-left"}
       >
-        <Icon size={18} />
-        {!collapsed && <span className="flex-1">{item.label}</span>}
+        <Icon size={18} className="shrink-0" />
+        {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
         {!collapsed && item.badge && (
-          <span className="text-[10px] px-2 py-0.5 bg-orange-500 rounded-full text-white">
+          <span className="shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] text-white">
             {item.badge}
           </span>
         )}
@@ -39,10 +40,13 @@ const Item = ({ item, collapsed, onClick }) => {
       to={item.to}
       end={item.end}
       onClick={onClick}
+      onMouseEnter={() => preloadRoute(item.to)}
+      onFocus={() => preloadRoute(item.to)}
+      onTouchStart={() => preloadRoute(item.to)}
       className={({ isActive }) => linkCls(isActive, collapsed)}
     >
-      <Icon size={18} />
-      {!collapsed && <span className="flex-1">{item.label}</span>}
+      <Icon size={18} className="shrink-0" />
+      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
     </NavLink>
   );
 };
@@ -52,7 +56,7 @@ const SidebarContent = ({ collapsed, closeMobile }) => (
     {MENU.map((group) => (
       <div key={group.section}>
         {!collapsed && (
-          <p className="text-xs text-gray-500 uppercase px-4 mt-4 mb-2">
+          <p className="px-4 mb-2 mt-4 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
             {group.section}
           </p>
         )}
@@ -64,65 +68,64 @@ const SidebarContent = ({ collapsed, closeMobile }) => (
   </nav>
 );
 
+const Logo = ({ collapsed }) => (
+  <div className={`flex h-16 shrink-0 items-center border-b border-white/10 ${collapsed ? "justify-center px-2" : "gap-2 px-5"}`}>
+    <span className="text-cyan-300">
+      <svg width="20" height="24" viewBox="0 0 26 30" fill="none" aria-hidden="true">
+        <rect x="1" y="1" width="24" height="28" rx="5" fill="none" stroke="#26c6da" strokeWidth="2" />
+        <path d="M8 22V9l5 4 5-4v13l-5-3-5 3z" fill="#26c6da" />
+      </svg>
+    </span>
+    {!collapsed && <span className="font-bold tracking-tight text-white">techquiz</span>}
+  </div>
+);
+
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <>
-      {/* Mobile hamburger */}
       <button
-        className="md:hidden fixed top-3 left-4 z-50 bg-[#121212] p-2 rounded cursor-pointer"
+        className="fixed left-4 top-3 z-[60] rounded-xl border border-white/10 bg-[#0b1120] p-2 text-white shadow-lg md:hidden"
         onClick={() => setMobileOpen(true)}
         aria-label="Open menu"
       >
-        <Menu className="text-white" size={20} />
+        <Menu size={20} />
       </button>
 
-      {/* Desktop sidebar */}
       <aside
-        className="hidden md:block fixed h-screen bg-[#121212] text-white z-30 transition-[width] duration-300"
-        style={{ width: collapsed ? 72 : 256 }}
+        className="dashboard-sidebar fixed inset-y-0 left-0 z-40 hidden overflow-hidden border-r border-white/10 bg-[#080d18]/95 text-white shadow-2xl shadow-black/20 backdrop-blur-xl md:block"
+        style={{ width: "var(--dashboard-sidebar-width)" }}
       >
-        <div className="p-4 font-bold border-b border-gray-800 flex items-center gap-2">
-          <span className="text-[#26c6da]">
-            <svg width="20" height="24" viewBox="0 0 26 30" fill="none">
-              <rect x="1" y="1" width="24" height="28" rx="5" fill="none" stroke="#26c6da" strokeWidth="2" />
-              <path d="M8 22V9l5 4 5-4v13l-5-3-5 3z" fill="#26c6da" />
-            </svg>
-          </span>
-          {!collapsed && <span>techquiz</span>}
-        </div>
+        <Logo collapsed={collapsed} />
 
-        <div className={`group absolute top-20 z-20 transition-all duration-300 ${collapsed ? "-right-3" : "-right-3"}`}>
-          <button
-            onClick={() => setCollapsed((p) => !p)}
-            className="relative bg-[#1f1f1f] border border-gray-900 rounded-full p-1.5 hover:bg-gray-700 transition cursor-pointer"
-            aria-label="Toggle sidebar"
-          >
-            <ChevronLeft
-              size={18}
-              className={`text-gray-300 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`}
-            />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto h-[calc(100vh-64px)]">
+        <div className="h-[calc(100dvh-4rem)] overflow-x-hidden overflow-y-auto py-1 [scrollbar-width:thin]">
           <SidebarContent collapsed={collapsed} />
         </div>
       </aside>
 
-      {/* Mobile sidebar */}
+      <button
+        onClick={() => setCollapsed((previous) => !previous)}
+        className="dashboard-sidebar-toggle fixed top-[4.8rem] z-[55] hidden h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#151c2b] text-slate-300 shadow-xl transition-all duration-300 hover:border-cyan-400/30 hover:bg-[#1d2638] hover:text-white md:flex"
+        style={{ left: "calc(var(--dashboard-sidebar-width) - 18px)" }}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        <ChevronLeft size={17} className={`transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
+      </button>
+
       {mobileOpen && (
         <>
-          <div className="fixed inset-0 bg-black/60 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
-          <aside className="fixed z-50 w-64 h-screen bg-[#121212] text-white md:hidden">
-            <div className="flex justify-between items-center p-4 border-b border-gray-800">
-              <span className="font-bold">techquiz</span>
-              <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="cursor-pointer">
-                <X className="text-white" />
+          <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
+          <aside className="fixed inset-y-0 left-0 z-50 w-[280px] overflow-hidden border-r border-white/10 bg-[#080d18] text-white shadow-2xl md:hidden">
+            <div className="flex h-16 items-center justify-between border-b border-white/10 px-5">
+              <span className="font-bold tracking-tight">techquiz</span>
+              <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-white">
+                <X size={20} />
               </button>
             </div>
-            <SidebarContent collapsed={false} closeMobile={() => setMobileOpen(false)} />
+            <div className="h-[calc(100dvh-4rem)] overflow-y-auto">
+              <SidebarContent collapsed={false} closeMobile={() => setMobileOpen(false)} />
+            </div>
           </aside>
         </>
       )}

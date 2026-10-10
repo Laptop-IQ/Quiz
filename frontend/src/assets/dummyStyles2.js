@@ -320,39 +320,39 @@ export const expensePageStyles = {
 
 export const profileStyles = {
   // Container styles
-  container: "max-w-4xl mx-auto py-8 px-4",
+  container: "max-w-6xl mx-auto py-2 sm:py-6 px-0 sm:px-2",
   mainContainer:
-    "bg-white -mx-7 rounded-xl shadow-sm overflow-hidden border border-gray-200",
+    "bg-white/[0.035] rounded-[28px] shadow-2xl shadow-black/20 overflow-hidden border border-white/10",
 
   // Header styles
   header:
-    "hidden sm:block bg-[#15803D] p-2 text-center py-12",
+    "hidden sm:block bg-gradient-to-br from-[#111b31] via-[#0b1220] to-[#07111d] p-2 text-center py-14 border-b border-white/10",
   avatar:
     "block w-44 h-44 mx-auto rounded-full flex items-center justify-center",
-  userName: "text-5xl font-bold text-white mx-48",
-  userEmail: "text-green-100 mt-2 mx-48",
+  userName: "text-4xl font-bold text-white",
+  userEmail: "text-slate-400 mt-2",
 
   // Content styles
-  content: "p-8 -mx-6.5",
+  content: "p-5 sm:p-8",
   grid: "grid grid-cols-1 md:grid-cols-2 gap-8",
 
   // Card styles
-  card: "bg-blue-50 rounded-lg p-6 border border-blue-100",
+  card: "bg-white/[0.025] rounded-2xl p-6 border border-white/10",
   cardTitle: "text-xl font-semibold pb-3 text-black flex items-center",
   icon: "w-5 h-5 mr-2 text-[#15803D]",
 
   // Form styles
   label: "text-sm text-gray-500  block mb-1",
   input:
-    "w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-200 focus:border-[#15803D] ",
+    "w-full px-4 py-2.5 bg-black/20 text-white border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-400/20 focus:border-cyan-400 ",
   inputWithError:
-    "w-full px-4 py-2 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-green-200 focus:border-[#15803D]",
+    "w-full px-4 py-2.5 bg-black/20 text-white border border-white/10 rounded-xl focus:ring-2 focus:ring-cyan-400/20 focus:border-cyan-400",
 
   // Button styles
   buttonPrimary:
-    "flex-1 bg-[#16A34A] text-white py-2.5 rounded-xl font-medium shadow-sm hover:bg-[#15803D] cursor-pointer",
+    "flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-2.5 rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 cursor-pointer transition",
   buttonSecondary:
-    "flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-100 cursor-pointer",
+    "flex-1 py-2.5 border border-white/10 text-slate-300 rounded-xl font-medium hover:bg-white/5 cursor-pointer",
   editButton:
     "text-[#15803D] hover:text-[#14532D] font-medium text-sm cursor-pointer",
   changeButton:

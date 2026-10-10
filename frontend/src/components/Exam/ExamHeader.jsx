@@ -29,7 +29,7 @@ const Logo = () => (
       <path d="M8 22V9l5 4 5-4v13l-5-3-5 3z" fill="#0b2545" />
     </svg>
     <span className="text-[30px] leading-none font-semibold tracking-tight text-[#00bcd4]">
-      techquiz
+      Tech Quiz Master
     </span>
   </div>
 );

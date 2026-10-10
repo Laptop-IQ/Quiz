@@ -1,6 +1,7 @@
 import express from "express";
 import {
   adminSignup,
+  adminSignupStatus,
   adminLogin,
   forgotAdminPassword,
   verifyAdminOtp,
@@ -11,6 +12,7 @@ import adminAuth from "../middleware/adminProtect.js";
 
 const router = express.Router();
 
+router.get("/signup-status", adminSignupStatus);
 router.post("/signup", adminSignup);
 router.post("/login", adminLogin);
 router.post("/forgot-password", forgotAdminPassword);

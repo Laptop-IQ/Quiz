@@ -1,53 +1,47 @@
 import { useEffect, useState } from "react";
-import { useApi } from "./api/api";
+import { fetchSeries, getCachedSeries } from "./useAllSeries";
 
-const LEVEL_ORDER = ["basic", "intermediate", "advanced"];
-
-// Loads one technology's "test series" (its levels) from /user/quizzes
+// Loads one technology's "test series" (its levels). Uses the shared, cached
+// summary list - no need to download every quiz and all of its questions.
 export default function useSeries(techId) {
-  const { request } = useApi();
-  const [series, setSeries] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const pick = (list) => {
+    const found = list?.find((s) => s.id === techId);
+    return found
+      ? {
+          id: found.id,
+          name: found.name,
+          category: found.category,
+          marksPerQuestion: found.marksPerQuestion,
+          negativeMarking: found.negativeMarking,
+          levels: found.levels,
+        }
+      : null;
+  };
+
+  const cached = getCachedSeries();
+  const [series, setSeries] = useState(() => (cached ? pick(cached) : null));
+  const [isLoading, setIsLoading] = useState(!cached);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let active = true;
-    (async () => {
-      try {
-        const data = await request("/user/quizzes");
-        const levels = data
-          .filter((q) => q.technology?.toLowerCase() === techId)
-          .map((q) => ({
-            level: q.level,
-            questionCount: q.questions?.length || 0,
-            timeLimit: q.timeLimit || 0, // minutes
-          }))
-          .sort(
-            (a, b) =>
-              LEVEL_ORDER.indexOf(a.level?.toLowerCase()) -
-              LEVEL_ORDER.indexOf(b.level?.toLowerCase()),
-          );
-
+    fetchSeries()
+      .then((list) => {
         if (!active) return;
-        setSeries(
-          levels.length
-            ? {
-                id: techId,
-                name: techId.charAt(0).toUpperCase() + techId.slice(1),
-                levels,
-              }
-            : null,
-        );
-      } catch (e) {
-        if (active) setError("Could not load this test series.");
-      } finally {
+        setSeries(pick(list));
+        setError("");
+      })
+      .catch(() => {
+        if (active && !getCachedSeries()) setError("Could not load this test series.");
+      })
+      .finally(() => {
         if (active) setIsLoading(false);
-      }
-    })();
+      });
     return () => {
       active = false;
     };
-  }, [request, techId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [techId]);
 
   return { series, isLoading, error };
 }
