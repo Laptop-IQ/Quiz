@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import cloudinary from "../config/cloudinary.js";
 import Quiz, { EXAM_CATEGORY_IDS } from "../models/Quiz.js";
 import Result from "../models/Result.js";
 import User from "../models/userModel.js";
@@ -31,6 +32,7 @@ const fail = (res, error, label) => {
 // ---------- validation helpers ----------
 
 // Returns clean questions or throws a message that names the failing question.
+// Supports three types: mcq (one correct), msq (several correct), nat (numerical range).
 const sanitizeQuestions = (questions) => {
   if (!Array.isArray(questions) || questions.length === 0) {
     throw new HttpError(400, "A quiz needs at least one question");
@@ -40,24 +42,76 @@ const sanitizeQuestions = (questions) => {
   }
   return questions.map((q, i) => {
     const n = i + 1;
+    const type = String(q?.type ?? "mcq").toLowerCase();
+    if (!["mcq", "msq", "nat"].includes(type)) {
+      throw new HttpError(400, `Question ${n}: unknown question type "${q?.type}"`);
+    }
+
     const question = String(q?.question ?? "").trim();
     if (!question) throw new HttpError(400, `Question ${n}: the question text is empty`);
+    if (question.length > 6000) throw new HttpError(400, `Question ${n}: the question text is too long`);
 
-    const options = Array.isArray(q?.options) ? q.options.map((o) => String(o ?? "").trim()) : [];
-    if (options.length !== 4 || options.some((o) => !o)) {
-      throw new HttpError(400, `Question ${n}: it needs exactly 4 non-empty options`);
-    }
-    if (new Set(options.map((o) => o.toLowerCase())).size !== 4) {
-      throw new HttpError(400, `Question ${n}: two options are identical`);
+    const clean = { type, question };
+
+    if (type === "nat") {
+      const min = Number(q?.natMin);
+      const max = q?.natMax === undefined || q?.natMax === null || q?.natMax === "" ? min : Number(q.natMax);
+      if (!Number.isFinite(min) || !Number.isFinite(max)) {
+        throw new HttpError(400, `Question ${n}: enter the numerical answer (or a valid range)`);
+      }
+      clean.options = [];
+      clean.natMin = Math.min(min, max);
+      clean.natMax = Math.max(min, max);
+    } else {
+      const options = Array.isArray(q?.options) ? q.options.map((o) => String(o ?? "").trim()) : [];
+      if (options.length !== 4 || options.some((o) => !o)) {
+        throw new HttpError(400, `Question ${n}: it needs exactly 4 non-empty options`);
+      }
+      if (options.some((o) => o.length > 2000)) {
+        throw new HttpError(400, `Question ${n}: an option is too long`);
+      }
+      if (new Set(options.map((o) => o.toLowerCase())).size !== 4) {
+        throw new HttpError(400, `Question ${n}: two options are identical`);
+      }
+      clean.options = options;
+
+      if (type === "mcq") {
+        const answerKey = String(q?.answerKey ?? "").trim().toUpperCase();
+        if (!LETTERS.includes(answerKey)) {
+          throw new HttpError(400, `Question ${n}: choose the correct answer (A, B, C or D)`);
+        }
+        clean.answerKey = answerKey;
+      } else {
+        const keys = [...new Set((Array.isArray(q?.answerKeys) ? q.answerKeys : []).map((k) => String(k).trim().toUpperCase()))]
+          .filter((k) => LETTERS.includes(k))
+          .sort();
+        if (keys.length === 0) {
+          throw new HttpError(400, `Question ${n}: choose at least one correct option`);
+        }
+        clean.answerKeys = keys;
+      }
     }
 
-    const answerKey = String(q?.answerKey ?? "").trim().toUpperCase();
-    if (!LETTERS.includes(answerKey)) {
-      throw new HttpError(400, `Question ${n}: choose the correct answer (A, B, C or D)`);
+    // optional per-question marks (otherwise the quiz defaults apply)
+    if (q?.marks !== undefined && q.marks !== null && q.marks !== "") {
+      const marks = Number(q.marks);
+      if (!Number.isFinite(marks) || marks <= 0 || marks > 100) {
+        throw new HttpError(400, `Question ${n}: marks must be above 0`);
+      }
+      clean.marks = round2(marks);
+    }
+    if (q?.negativeMarks !== undefined && q.negativeMarks !== null && q.negativeMarks !== "") {
+      const neg = Number(q.negativeMarks);
+      if (!Number.isFinite(neg) || neg < 0 || neg > 100) {
+        throw new HttpError(400, `Question ${n}: negative marks cannot be below 0`);
+      }
+      clean.negativeMarks = round2(neg);
     }
 
-    const topic = String(q?.topic ?? "").trim().slice(0, 80) || "General";
-    return { question, options, answerKey, topic };
+    clean.topic = String(q?.topic ?? "").trim().slice(0, 80) || "General";
+    const explanation = String(q?.explanation ?? "").trim().slice(0, 4000);
+    if (explanation) clean.explanation = explanation;
+    return clean;
   });
 };
 
@@ -68,6 +122,9 @@ const readSettings = (body, { partial = false } = {}) => {
   if (!partial || body.category !== undefined) {
     const category = String(body.category ?? "tech").toLowerCase();
     out.category = EXAM_CATEGORY_IDS.includes(category) ? category : "tech";
+  }
+  if (body.showSections !== undefined) {
+    out.showSections = body.showSections === true || body.showSections === "true";
   }
   if (!partial || body.examName !== undefined) {
     out.examName = String(body.examName ?? "").trim().slice(0, 60) || undefined;
@@ -287,6 +344,26 @@ export const getQuizByTechLevel = async (req, res) => {
   } catch (error) {
     console.error("getQuizByTechLevel error:", error);
     res.status(500).json({ message: "Failed to fetch quiz" });
+  }
+};
+
+// ---------- question images ----------
+
+// Uploads a figure/diagram for use inside a question (Markdown image). Returns its URL.
+export const uploadImage = async (req, res) => {
+  try {
+    if (!req.file) throw new HttpError(400, "Choose an image to upload");
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      throw new HttpError(503, "Image upload is not configured on the server (Cloudinary credentials are missing)");
+    }
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream({ folder: "quiz-questions", resource_type: "image" }, (err, r) => (err ? reject(err) : resolve(r)))
+        .end(req.file.buffer);
+    });
+    res.json({ success: true, url: result.secure_url });
+  } catch (error) {
+    fail(res, error, "uploadImage");
   }
 };
 

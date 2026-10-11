@@ -6,7 +6,7 @@ import { useToast } from "../components/Toast";
 import QuestionEditor from "../components/QuestionEditor";
 import { Card, ConfirmDialog, ErrorState, PageHeader, Skeleton, Spinner, buttonStyles, cx, inputStyles } from "../components/ui";
 import { CATEGORIES, LEVELS, NEGATIVE_PRESETS } from "../lib/categories";
-import { downloadTemplate, fromApiQuestions, parseCSV, questionIssues, rowsToQuestions, toPayloadQuestions } from "../lib/csv";
+import { downloadTemplate, fromApiQuestions, jsonToQuestions, parseCSV, questionIssues, rowsToQuestions, toPayloadQuestions } from "../lib/csv";
 import { slugify } from "../lib/format";
 
 const Field = ({ label, hint, htmlFor, children }) => (
@@ -17,7 +17,14 @@ const Field = ({ label, hint, htmlFor, children }) => (
   </div>
 );
 
-const blank = { category: "ssc", examName: "", technology: "", level: "Basic", timeLimit: 30, marksPerQuestion: 1, negativeMarking: 0 };
+const blank = { category: "ssc", examName: "", technology: "", level: "Basic", timeLimit: 30, marksPerQuestion: 1, negativeMarking: 0, showSections: false };
+
+// One-click starting points that match real exam patterns
+const PRESETS = [
+  { label: "GATE paper", hint: "180 min · 1 mark · −⅓", values: { category: "gate", timeLimit: 180, marksPerQuestion: 1, negativeMarking: 0.33, showSections: true, level: "Advanced" } },
+  { label: "SSC CGL Tier-1", hint: "60 min · 2 marks · −0.5", values: { category: "ssc", timeLimit: 60, marksPerQuestion: 2, negativeMarking: 0.5, showSections: true } },
+  { label: "IBPS PO Prelims", hint: "60 min · 1 mark · −¼", values: { category: "banking", timeLimit: 60, marksPerQuestion: 1, negativeMarking: 0.25, showSections: true } },
+];
 
 const QuizEditor = () => {
   const { id } = useParams();
@@ -46,6 +53,7 @@ const QuizEditor = () => {
       setForm({
         category: q.category, examName: q.examName || "", technology: q.technology, level: q.level,
         timeLimit: q.timeLimit, marksPerQuestion: q.marksPerQuestion, negativeMarking: q.negativeMarking,
+        showSections: !!q.showSections,
       });
       setQuestions(fromApiQuestions(q.questions));
       setSlugTouched(true);
@@ -79,11 +87,19 @@ const QuizEditor = () => {
   // ---- CSV import ----
   const importFile = async (file, mode) => {
     if (!file) return;
-    if (!/\.(csv|txt)$/i.test(file.name) && file.type !== "text/csv") {
-      toast("Please choose a .csv file", "error");
+    const isJson = /\.json$/i.test(file.name) || file.type === "application/json";
+    if (!isJson && !/\.(csv|txt)$/i.test(file.name) && file.type !== "text/csv") {
+      toast("Please choose a .csv or .json file", "error");
       return;
     }
-    const parsed = rowsToQuestions(parseCSV(await file.text()));
+    let parsed;
+    try {
+      const text = await file.text();
+      parsed = isJson ? jsonToQuestions(JSON.parse(text)) : rowsToQuestions(parseCSV(text));
+    } catch {
+      toast("That file could not be read. Check that it is valid " + (isJson ? "JSON." : "CSV."), "error");
+      return;
+    }
     if (!parsed.length) {
       toast("No questions found in that file. Download the template to see the expected format.", "error");
       return;
@@ -126,7 +142,7 @@ const QuizEditor = () => {
     setSaving(true);
     const settings = {
       category: form.category, examName: form.examName.trim(), timeLimit: Number(form.timeLimit),
-      marksPerQuestion: Number(form.marksPerQuestion), negativeMarking: Number(form.negativeMarking) || 0,
+      marksPerQuestion: Number(form.marksPerQuestion), negativeMarking: Number(form.negativeMarking) || 0, showSections: !!form.showSections,
       questions: toPayloadQuestions(questions),
     };
     try {
@@ -146,6 +162,19 @@ const QuizEditor = () => {
   if (loading) return <div className="space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-64 w-full" /><Skeleton className="h-40 w-full" /></div>;
 
   const presetActive = NEGATIVE_PRESETS.some((p) => p.value === Number(form.negativeMarking));
+  const marksOfQ = (q) => (String(q.marks).trim() !== "" && Number(q.marks) > 0 ? Number(q.marks) : Number(form.marksPerQuestion) || 1);
+  const totalMarks = Math.round(questions.reduce((n, q) => n + marksOfQ(q), 0) * 100) / 100;
+  const typeCounts = { mcq: 0, msq: 0, nat: 0 };
+  questions.forEach((q) => { typeCounts[q.type || "mcq"] += 1; });
+  const sectionRows = Object.values(
+    questions.reduce((acc, q) => {
+      const name = q.topic.trim() || "General";
+      acc[name] ??= { name, count: 0, marks: 0 };
+      acc[name].count += 1;
+      acc[name].marks += marksOfQ(q);
+      return acc;
+    }, {}),
+  );
 
   return (
     <div className="pb-28">
@@ -154,7 +183,19 @@ const QuizEditor = () => {
 
       <div className="space-y-6">
         <Card className="p-5 sm:p-6">
-          <h2 className="mb-5 text-base font-extrabold text-slate-950">1. Quiz details</h2>
+          <h2 className="mb-4 text-base font-extrabold text-slate-950">1. Quiz details</h2>
+          {!isEdit && (
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400">Quick start</span>
+              {PRESETS.map((p) => (
+                <button key={p.label} type="button" onClick={() => setField(p.values)} title={p.hint}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-left transition hover:border-emerald-300 hover:bg-emerald-50">
+                  <span className="block text-sm font-bold text-slate-800">{p.label}</span>
+                  <span className="block text-[11px] text-slate-400">{p.hint}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Exam category" htmlFor="category">
               <select id="category" value={form.category} onChange={(e) => setField({ category: e.target.value })} className={inputStyles}>
@@ -202,6 +243,14 @@ const QuizEditor = () => {
             </div>
           </div>
 
+          <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3.5 transition hover:bg-slate-50">
+            <input type="checkbox" checked={!!form.showSections} onChange={(e) => setField({ showSections: e.target.checked })} className="mt-0.5 h-4 w-4 accent-emerald-600" />
+            <span>
+              <span className="block text-sm font-bold text-slate-900">Group questions into sections</span>
+              <span className="block text-xs text-slate-500">Each topic becomes a section tab with its own palette (like General Aptitude + Subject in GATE, or Quant / Reasoning / English in SSC).</span>
+            </span>
+          </label>
+
           {duplicate && (
             <div className="mt-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="status">
               <TriangleAlert size={18} className="mt-0.5 shrink-0" />
@@ -216,20 +265,20 @@ const QuizEditor = () => {
             <button type="button" onClick={downloadTemplate} className={buttonStyles.secondary}><Download size={15} /> CSV template</button>
           </div>
 
-          <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={pickFile(isEdit ? "append" : "replace")} aria-label="Choose CSV file" />
+          <input ref={fileRef} type="file" accept=".csv,.json,text/csv,application/json" className="hidden" onChange={pickFile(isEdit ? "append" : "replace")} aria-label="Choose CSV or JSON file" />
           <div
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop}
             className={cx("flex flex-col items-center rounded-2xl border-2 border-dashed px-6 py-8 text-center transition", dragging ? "border-emerald-500 bg-emerald-50" : "border-slate-300 bg-slate-50/60")}
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-600 shadow-sm"><FileUp size={22} /></div>
-            <p className="mt-3 text-sm font-bold text-slate-900">Drag & drop a CSV file here</p>
-            <p className="mt-1 max-w-lg text-xs text-slate-500">Columns: Question, Option A–D, Answer (A/B/C/D, 1–4 or the option text) and an optional Topic. Rows with an answer we cannot match are flagged for you to fix, never guessed.</p>
+            <p className="mt-3 text-sm font-bold text-slate-900">Drag & drop a CSV or JSON file here</p>
+            <p className="mt-1 max-w-lg text-xs text-slate-500">Columns: Type (MCQ / MSQ / NAT), Question, Option A–D, Answer, Marks, Negative, Topic, Explanation. Answers: A–D · A;C for MSQ · 12.5 or 12.5 to 13.5 for NAT. Use $…$ for maths and ![](url) for figures. Anything we cannot read is flagged for you to fix, never guessed.</p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <button type="button" onClick={() => fileRef.current?.click()} className={buttonStyles.primary}><Upload size={15} /> {isEdit ? "Append from CSV" : "Choose CSV file"}</button>
+              <button type="button" onClick={() => fileRef.current?.click()} className={buttonStyles.primary}><Upload size={15} /> {isEdit ? "Append from file" : "Choose CSV / JSON"}</button>
               {isEdit && (
                 <label className={cx(buttonStyles.secondary, "cursor-pointer")}>
-                  Replace all with CSV
-                  <input type="file" accept=".csv,text/csv" className="hidden" onChange={pickFile("replace")} />
+                  Replace all from file
+                  <input type="file" accept=".csv,.json,text/csv,application/json" className="hidden" onChange={pickFile("replace")} />
                 </label>
               )}
             </div>
@@ -237,6 +286,30 @@ const QuizEditor = () => {
 
           {importInfo && (
             <p className="mt-3 flex items-center gap-2 rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-800" role="status"><Info size={14} />{importInfo}</p>
+          )}
+
+          {questions.length > 0 && (
+            <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200" aria-label="Paper summary">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5">
+                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400">Paper summary</p>
+                <p className="text-xs font-semibold text-slate-500">
+                  MCQ {typeCounts.mcq} · MSQ {typeCounts.msq} · NAT {typeCounts.nat}
+                </p>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wide text-slate-400">
+                    <th className="px-4 py-2 font-bold">Section</th><th className="px-4 py-2 font-bold">Questions</th><th className="px-4 py-2 text-right font-bold">Marks</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sectionRows.map((r) => (
+                    <tr key={r.name}><td className="px-4 py-2 font-semibold text-slate-800">{r.name}</td><td className="px-4 py-2 text-slate-600">{r.count}</td><td className="px-4 py-2 text-right font-bold text-slate-800">{Math.round(r.marks * 100) / 100}</td></tr>
+                  ))}
+                  <tr className="bg-slate-50/70"><td className="px-4 py-2 font-extrabold text-slate-900">Total</td><td className="px-4 py-2 font-bold text-slate-700">{questions.length}</td><td className="px-4 py-2 text-right font-extrabold text-slate-900">{totalMarks}</td></tr>
+                </tbody>
+              </table>
+            </div>
           )}
 
           <div className="mt-6">
@@ -248,7 +321,7 @@ const QuizEditor = () => {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur lg:left-64">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p className={cx("text-sm font-semibold", problems.length ? "text-amber-700" : "text-emerald-700")} aria-live="polite">
-            {problems.length ? problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : "") : `Ready · ${questions.length} questions · ${form.marksPerQuestion * questions.length} total marks`}
+            {problems.length ? problems[0] + (problems.length > 1 ? ` (+${problems.length - 1} more)` : "") : `Ready · ${questions.length} questions · ${totalMarks} total marks`}
           </p>
           <div className="flex gap-2">
             <Link to="/quizzes" className={buttonStyles.secondary}>Cancel</Link>

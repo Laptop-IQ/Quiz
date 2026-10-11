@@ -4,6 +4,10 @@ import { useApi } from "../services/api/api";
 import { getStoredUser } from "../services/useSeries";
 import { fetchResults, invalidateResults } from "../services/useMyResults";
 import ExamHeader from "../components/Exam/ExamHeader";
+import QuestionBody from "../components/Exam/QuestionBody";
+import { TYPE_LABEL } from "../lib/richText";
+import ReviewCard from "../components/Exam/ReviewCard";
+import { correctIndices, describeAnswer, describeCorrect, gradeAttempt, isAnswered, negativeOf, marksOf } from "../lib/grading";
 
 const LETTERS = ["A", "B", "C", "D"];
 const hasToken = () =>
@@ -205,9 +209,17 @@ export default function ExamEngine() {
         if (!found) return setLoadError("This test was not found.");
 
         const questions = found.questions.map((q) => ({
+          type: q.type || "mcq",
           text: q.question,
-          options: q.options,
+          options: q.options || [],
           topic: q.topic || "General",
+          answerKey: q.answerKey,
+          answerKeys: q.answerKeys,
+          natMin: q.natMin,
+          natMax: q.natMax,
+          marks: q.marks,
+          negativeMarks: q.negativeMarks,
+          explanation: q.explanation,
           correct: LETTERS.indexOf(String(q.answerKey).toUpperCase()),
         }));
         const total = (found.timeLimit || 0) * 60;
@@ -225,6 +237,7 @@ export default function ExamEngine() {
           level: found.level,
           category: found.category || "tech",
           examName: found.examName || "",
+          showSections: !!found.showSections,
           marksPerQuestion: found.marksPerQuestion ?? 1,
           negativeMarking: found.negativeMarking ?? 0,
         });
@@ -287,26 +300,25 @@ export default function ExamEngine() {
     if (document.fullscreenElement) document.exitFullscreen?.();
     bankCurrentQuestionTime();
 
-    let correct = 0;
-    let wrong = 0;
+    // MCQ / MSQ / NAT graded with the same rules the server uses
+    const graded = gradeAttempt(quiz, answers);
+    const { correct, wrong } = graded;
     const questionDetails = quiz.questions.map((q, i) => {
-      const yourIndex = answers[i];
-      const status =
-        yourIndex === undefined
-          ? "skipped"
-          : yourIndex === q.correct
-            ? "correct"
-            : "wrong";
-      if (status === "correct") correct++;
-      if (status === "wrong") wrong++;
+      const r = graded.results[i];
       return {
         questionNumber: i + 1,
+        type: r.type,
         text: q.text,
         options: q.options,
         topic: q.topic || "General",
-        correctIndex: q.correct,
-        yourIndex: yourIndex ?? null,
-        status,
+        correctIndex: r.type === "mcq" ? (correctIndices(q)[0] ?? null) : null,
+        yourIndex: r.type === "mcq" && typeof answers[i] === "number" ? answers[i] : null,
+        yourAnswer: describeAnswer(q, answers[i]),
+        correctAnswer: describeCorrect(q),
+        status: r.status,
+        marks: r.max,
+        awarded: r.awarded,
+        explanation: q.explanation || "",
         timeTaken: Math.round(questionTimesRef.current[i] || 0),
       };
     });
@@ -318,9 +330,7 @@ export default function ExamEngine() {
     // Marks follow the exam's own scheme (e.g. +2 per correct, -0.5 per wrong)
     const marksPerQuestion = quiz.marksPerQuestion ?? 1;
     const negativeMarking = quiz.negativeMarking ?? 0;
-    const round2 = (n) => Math.round(n * 100) / 100;
-    const marksObtained = round2(correct * marksPerQuestion - wrong * negativeMarking);
-    const totalMarks = round2(total * marksPerQuestion);
+    const { marksObtained, totalMarks } = graded;
 
     setResult({
       correct,
@@ -332,6 +342,7 @@ export default function ExamEngine() {
       totalMarks,
       marksPerQuestion,
       negativeMarking,
+      graded: graded.results,
     });
     localStorage.removeItem(storageKey);
 
@@ -371,6 +382,7 @@ export default function ExamEngine() {
           wrong,
           timeTaken,
           startDate: new Date(Date.now() - timeTaken * 1000),
+          responses: answers, // the server re-grades these, the score is never taken from the client
           questionAnalysis: questionDetails,
         });
         invalidateResults();
@@ -431,7 +443,7 @@ export default function ExamEngine() {
     const n = quiz.questions.length;
     let answered = 0, marked = 0, notAnswered = 0, notVisited = 0;
     for (let i = 0; i < n; i++) {
-      const ans = answers[i] !== undefined;
+      const ans = isAnswered(quiz.questions[i], answers[i]);
       if (ans) answered++;
       if (review[i]) marked++;
       if (!visited[i]) notVisited++;
@@ -440,8 +452,24 @@ export default function ExamEngine() {
     return { n, answered, marked, notAnswered, notVisited };
   }, [quiz, answers, review, visited]);
 
+  // Sections = the quiz's topics in order of appearance (only when the admin turned sections on)
+  const sections = useMemo(() => {
+    if (!quiz?.showSections) return null;
+    const order = [];
+    const byName = {};
+    quiz.questions.forEach((q, i) => {
+      const name = q.topic || "General";
+      if (!byName[name]) {
+        byName[name] = [];
+        order.push(name);
+      }
+      byName[name].push(i);
+    });
+    return order.length > 1 ? order.map((name) => ({ name, indices: byName[name] })) : null;
+  }, [quiz]);
+
   const statusOf = (i) => {
-    const ans = answers[i] !== undefined;
+    const ans = isAnswered(quiz.questions[i], answers[i]);
     if (review[i] && ans) return "answeredMarked";
     if (review[i]) return "marked";
     if (ans) return "answered";
@@ -465,16 +493,15 @@ export default function ExamEngine() {
     }
   };
 
-  // clicking the chosen option again removes it (as Testbook does)
-  const chooseOption = (i) =>
+  // value: number (MCQ) | number[] (MSQ) | string (NAT); undefined clears the answer
+  const setResponse = (value) =>
     setAnswers((a) => {
-      if (a[qIndex] === i) {
-        const c = { ...a };
-        delete c[qIndex];
-        return c;
-      }
-      return { ...a, [qIndex]: i };
+      const c = { ...a };
+      if (value === undefined || value === null) delete c[qIndex];
+      else c[qIndex] = value;
+      return c;
     });
+  const clearResponse = () => setResponse(undefined);
 
   const retake = () => {
     localStorage.removeItem(storageKey);
@@ -507,8 +534,9 @@ export default function ExamEngine() {
     return <div className="min-h-screen flex items-center justify-center text-gray-500">Loading test...</div>;
   }
 
-  const title = `${cap(techId)} Test Series - ${cap(quiz.level)}`;
-  const sectionName = `${cap(techId)} - ${cap(quiz.level)}`;
+  const examLabel = quiz.examName || cap(techId);
+  const title = `${examLabel} Test Series - ${cap(quiz.level)}`;
+  const sectionName = `${examLabel} - ${cap(quiz.level)}`;
   // stable 12-digit roll number derived from the logged-in user (like Testbook)
   const rollSeed = user?._id || user?.id || user?.email || user?.name || "";
   let h = 7;
@@ -519,7 +547,7 @@ export default function ExamEngine() {
   if (result) {
     const attemptedCount = result.correct + result.wrong;
     const pct = attemptedCount ? Math.round((result.correct / attemptedCount) * 100) : 0;
-    const hasScheme = result.negativeMarking > 0 || result.marksPerQuestion !== 1;
+    const hasScheme = result.negativeMarking > 0 || result.totalMarks !== result.total;
     const mins = Math.floor(result.timeTaken / 60);
     const secs = result.timeTaken % 60;
     return (
@@ -537,8 +565,9 @@ export default function ExamEngine() {
           <p className="text-center text-sm text-gray-500 mt-3">Unattempted: {result.unattempted}</p>
           {hasScheme && (
             <p className="text-center text-xs text-gray-500 mt-1">
-              Marking scheme: +{result.marksPerQuestion} per correct answer
-              {result.negativeMarking > 0 ? `, −${result.negativeMarking} per wrong answer` : ", no negative marking"}
+              {result.totalMarks === result.total * result.marksPerQuestion
+                ? `Marking scheme: +${result.marksPerQuestion} per correct answer${result.negativeMarking > 0 ? `, −${result.negativeMarking} per wrong answer` : ", no negative marking"}`
+                : "Marks vary by question (shown with each solution)."}
             </p>
           )}
 
@@ -566,28 +595,9 @@ export default function ExamEngine() {
 
           {showReview && (
             <div className="mt-8 space-y-4">
-              {quiz.questions.map((q, i) => {
-                const mine = answers[i];
-                return (
-                  <div key={i} className="border rounded">
-                    <div className="border-b px-3 py-2 font-medium bg-gray-50">Q{i + 1}. {q.text}</div>
-                    {q.options.map((opt, oi) => {
-                      const isCorrect = oi === q.correct;
-                      const isMine = oi === mine;
-                      return (
-                        <div key={oi} className={`px-3 py-2 border-t text-sm flex justify-between ${isCorrect ? "bg-green-50 text-green-800" : isMine ? "bg-red-50 text-red-700" : ""}`}>
-                          <span>{LETTERS[oi]}. {opt}</span>
-                          <span className="text-xs font-semibold">
-                            {isCorrect ? "Correct answer" : isMine ? "Your answer" : ""}
-                            {isCorrect && isMine ? " • Your answer" : ""}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {mine === undefined && <p className="px-3 py-2 border-t text-xs text-gray-500">Not attempted</p>}
-                  </div>
-                );
-              })}
+              {quiz.questions.map((q, i) => (
+                <ReviewCard key={i} q={q} index={i} response={answers[i]} graded={result.graded?.[i]} />
+              ))}
             </div>
           )}
         </div>
@@ -597,9 +607,26 @@ export default function ExamEngine() {
 
   /* ================= EXAM UI ================= */
   const q = quiz.questions[qIndex];
-  const summaryRows = [
-    { name: sectionName, n: counts.n, answered: counts.answered, notAnswered: counts.notAnswered, marked: counts.marked, notVisited: counts.notVisited },
-  ];
+  const countsFor = (indices) => {
+    let answered = 0, marked = 0, notAnswered = 0, notVisited = 0;
+    indices.forEach((i) => {
+      const ans = isAnswered(quiz.questions[i], answers[i]);
+      if (ans) answered++;
+      if (review[i]) marked++;
+      if (!visited[i]) notVisited++;
+      else if (!ans) notAnswered++;
+    });
+    return { n: indices.length, answered, marked, notAnswered, notVisited };
+  };
+  const allIdx = quiz.questions.map((_, i) => i);
+  const currentSection = sections?.find((sec) => sec.indices.includes(qIndex)) || null;
+  const nextSection = currentSection ? sections[sections.indexOf(currentSection) + 1] : null;
+  const paletteIdx = currentSection ? currentSection.indices : allIdx;
+  const paletteCounts = countsFor(paletteIdx);
+  const qType = q.type || "mcq";
+  const qMarks = marksOf(q, quiz);
+  const qNeg = negativeOf(q, quiz);
+  const summaryRows = (sections || [{ name: sectionName, indices: allIdx }]).map((sec) => ({ name: sec.name, ...countsFor(sec.indices) }));
 
   return (
     <div className="h-screen flex flex-col bg-white font-[Arial,Helvetica,sans-serif] text-[#222] select-none overflow-hidden">
@@ -632,7 +659,26 @@ export default function ExamEngine() {
 
             {/* part tabs + actions */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 pt-3">
-              <span className="bg-[#008000] text-white font-bold tracking-wider text-[16px] px-[8px] py-[4px] rounded">PART-A</span>
+              {sections ? (
+                <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Sections">
+                  {sections.map((sec) => {
+                    const on = sec === currentSection;
+                    return (
+                      <button
+                        key={sec.name}
+                        role="tab"
+                        aria-selected={on}
+                        onClick={() => !on && goToQuestion(sec.indices[0])}
+                        className={`font-bold tracking-wider text-[15px] px-[8px] py-[4px] rounded cursor-pointer ${on ? "bg-[#008000] text-white" : "bg-white border border-[#008000] text-[#008000] hover:bg-green-50"}`}
+                      >
+                        {sec.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span className="bg-[#008000] text-white font-bold tracking-wider text-[16px] px-[8px] py-[4px] rounded">PART-A</span>
+              )}
               <div className="flex flex-wrap items-center gap-[15px] lg:ml-[270px]">
                 {qIndex > 0 && (
                   <Btn
@@ -645,8 +691,9 @@ export default function ExamEngine() {
                   </Btn>
                 )}
                 <Btn onClick={toggleReview}>{review[qIndex] ? "Unmark Review" : "Mark for Review"}</Btn>
+                <Btn onClick={clearResponse}>Clear Response</Btn>
                 <Btn onClick={saveAndNext}>Save &amp; Next</Btn>
-                <Btn onClick={() => setDialog("section")}>Submit Section</Btn>
+                <Btn onClick={() => setDialog("section")}>{nextSection ? "Next Section" : "Submit Section"}</Btn>
                 <Btn onClick={() => setDialog("submit")}>Submit Test</Btn>
               </div>
             </div>
@@ -715,10 +762,15 @@ export default function ExamEngine() {
             )}
           </div>
 
-          <div className="px-5 pt-[30px] pb-2 text-[16px] font-bold">Question No. {qIndex + 1}</div>
+          <div className="px-5 pt-[30px] pb-2 flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+            <span className="text-[16px] font-bold">Question No. {qIndex + 1}</span>
+            <span className="text-[13px] text-gray-600">
+              {TYPE_LABEL[qType]} &nbsp;|&nbsp; Marks: <b>+{qMarks}</b> &nbsp;|&nbsp; Negative: <b>{qNeg > 0 ? `−${qNeg}` : "none"}</b>
+            </span>
+          </div>
 
           {/* question box */}
-          <div className="mx-5 mb-5 border border-[#e2e2e2] flex-1 min-h-[420px]" style={{ zoom: zoom / 100 }}>
+          <div className="mx-5 mb-5 border border-[#e2e2e2] flex-1 shrink-0 min-h-[420px]" style={{ zoom: zoom / 100 }}>
             <div className="flex items-center justify-end gap-6 px-[22px] pt-[8px] pb-[6px] text-[14px]">
               <label className="flex items-center gap-1 font-bold">
                 Select Language
@@ -739,38 +791,22 @@ export default function ExamEngine() {
               </button>
             </div>
 
-            <div className="mx-[20px] mb-5 border border-[#e2e2e2]">
-              <div className="px-[20px] py-[10px] text-[20px] text-[#222] whitespace-pre-line border-b border-[#e2e2e2]">
-                {q.text}
-              </div>
-              {q.options.map((opt, i) => (
-                <div
-                  key={i}
-                  onClick={() => chooseOption(i)}
-                  className="flex items-stretch border-b border-[#e2e2e2] last:border-b-0 cursor-pointer hover:bg-gray-50"
-                >
-                  <div className="w-[56px] shrink-0 border-r border-[#e2e2e2] flex items-center justify-center">
-                    <input type="radio" name={`q-${qIndex}`} checked={answers[qIndex] === i} readOnly className="w-[15px] h-[15px] cursor-pointer" />
-                  </div>
-                  <div className="px-5 py-[22px] text-[20px]">{opt}</div>
-                </div>
-              ))}
-            </div>
+            <QuestionBody q={q} qIndex={qIndex} value={answers[qIndex]} onChange={setResponse} />
           </div>
         </div>
 
         {/* ============ RIGHT PANEL ============ */}
         {panelOpen ? (
-          <aside className="w-[375px] max-w-[85vw] shrink-0 overflow-y-auto pb-10 max-lg:absolute max-lg:right-0 max-lg:top-[120px] max-lg:bottom-0 max-lg:bg-white max-lg:shadow-xl max-lg:z-30">
+          <aside className="w-[280px] max-w-[80vw] shrink-0 overflow-y-auto pb-10 max-lg:absolute max-lg:right-0 max-lg:top-[120px] max-lg:bottom-0 max-lg:bg-white max-lg:shadow-xl max-lg:z-30">
             <div className="flex items-center gap-4 mt-[55px] px-[26px]">
               <button onClick={() => setPanelOpen(false)} aria-label="Collapse panel" className="cursor-pointer">
                 <svg width="18" height="26" viewBox="0 0 18 26"><path d="M1 1l16 12L1 25z" fill="#1e9ac0" /></svg>
               </button>
-              <div className="text-[18px] font-bold leading-6">{sectionName}</div>
+              <div className="text-[14px] font-bold leading-6">{currentSection ? currentSection.name : sectionName}</div>
             </div>
 
-            <div className="grid grid-cols-6 gap-y-[26px] px-[6px] mt-[36px] justify-items-center">
-              {quiz.questions.map((_, i) => (
+            <div className="grid grid-cols-5 gap-y-[20px] px-[6px] mt-[36px] justify-items-center">
+              {paletteIdx.map((i) => (
                 <Pal key={i} status={statusOf(i)} current={i === qIndex} onClick={() => goToQuestion(i)}>
                   {i + 1}
                 </Pal>
@@ -781,15 +817,15 @@ export default function ExamEngine() {
               <thead>
                 <tr>
                   <th colSpan={2} className="bg-[#bdbdbd] border border-black py-1 text-[18px] font-bold">
-                    PART-A Analysis
+                    {currentSection ? currentSection.name : "PART-A"} Analysis
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Answered", counts.answered],
-                  ["Not Answered", counts.n - counts.answered],
-                  ["Mark for Review", counts.marked],
+                  ["Answered", paletteCounts.answered],
+                  ["Not Answered", paletteCounts.n - paletteCounts.answered],
+                  ["Mark for Review", paletteCounts.marked],
                 ].map(([label, val]) => (
                   <tr key={label}>
                     <td className="border border-black px-[9px] py-[3px]">{label}</td>
@@ -855,7 +891,9 @@ export default function ExamEngine() {
         <Dialog width={1000}>
           <div className="px-5 py-[18px] text-[17px] border-b border-gray-200">
             {dialog === "section"
-              ? "Are you sure you want to submit this section? This is the last section, so your test will be submitted."
+              ? nextSection
+                ? `Move on to the next section, "${nextSection.name}"? You can still come back to this one.`
+                : "Are you sure you want to submit this section? This is the last section, so your test will be submitted."
               : "Are you sure you want to submit the test?"}
           </div>
           <div className="p-5">
@@ -863,7 +901,18 @@ export default function ExamEngine() {
           </div>
           <div className="px-5 py-3 border-t border-gray-200 flex justify-end items-center gap-3">
             <CyanBtn plain onClick={() => setDialog(null)}>No</CyanBtn>
-            <CyanBtn onClick={submit}>Yes</CyanBtn>
+            <CyanBtn
+              onClick={
+                dialog === "section" && nextSection
+                  ? () => {
+                      setDialog(null);
+                      goToQuestion(nextSection.indices[0]);
+                    }
+                  : submit
+              }
+            >
+              Yes
+            </CyanBtn>
           </div>
         </Dialog>
       )}

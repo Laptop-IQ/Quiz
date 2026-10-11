@@ -100,7 +100,7 @@ const ResultPreview = () => (
         <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" />
       </span>
       <Timer size={15} className="text-slate-500" />
-      <span className="text-sm font-extrabold tabular-nums text-slate-900">29:41</span>
+      <span className="text-sm font-extrabold tabular-nums text-slate-900">59:41</span>
     </div>
 
     <div className="lp-float-slow absolute -bottom-5 -left-3 flex items-center gap-2.5 rounded-2xl border border-white/70 bg-white px-3.5 py-2.5 shadow-xl sm:-left-8">

@@ -1,1 +1,14 @@
 @import "tailwindcss";
+/* Rich question text: Markdown, tables, figures, LaTeX (KaTeX) */
+.rich { overflow-wrap: anywhere; }
+.rich > :first-child { margin-top: 0; }
+.rich > :last-child { margin-bottom: 0; }
+.rich p { margin: 0 0 .6em; white-space: pre-line; }
+.rich ul, .rich ol { margin: .4em 0 .6em 1.4em; list-style: revert; }
+.rich code { background: rgba(0,0,0,.06); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+.rich .rich-img { display: inline-block; max-width: 100%; height: auto; max-height: 260px; vertical-align: middle; }
+.rich-table-wrap { overflow-x: auto; margin: .5em 0; max-width: 100%; }
+.rich table { border-collapse: collapse; }
+.rich th, .rich td { border: 1px solid #334155; padding: 4px 12px; text-align: center; }
+.rich th { background: #f1f5f9; }
+.rich .katex-display { margin: .5em 0; overflow-x: auto; overflow-y: hidden; }

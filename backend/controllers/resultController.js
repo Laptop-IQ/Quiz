@@ -1,5 +1,6 @@
 import Result from "../models/Result.js";
 import Quiz from "../models/Quiz.js";
+import { gradeAttempt } from "../utils/grading.js";
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
@@ -14,27 +15,50 @@ export const CreateMyResult = async (req, res) => {
       });
     }
 
-    // Marks come from the quiz's own marking scheme (never trusted from the client)
-    const correct = Number(req.body.correct) || 0;
-    const wrong = Number(req.body.wrong) || 0;
-    const total = Number(req.body.totalQuestions) || 0;
     const quiz = await Quiz.findOne({
       technology: String(req.body.technology || "").toLowerCase(),
       level: req.body.level,
     })
-      .select("category marksPerQuestion negativeMarking")
+      .select("category marksPerQuestion negativeMarking questions")
       .lean();
+
+    // Grade on the server from the candidate's raw responses (MCQ / MSQ / NAT, per-question
+    // marks) so a score can never be forged from the client.
+    let correct = Number(req.body.correct) || 0;
+    let wrong = Number(req.body.wrong) || 0;
+    let total = Number(req.body.totalQuestions) || 0;
     const marksPerQuestion = quiz?.marksPerQuestion ?? 1;
     const negativeMarking = quiz?.negativeMarking ?? 0;
+    let marksObtained = round2(correct * marksPerQuestion - wrong * negativeMarking);
+    let totalMarks = round2(total * marksPerQuestion);
+    let questionAnalysis = req.body.questionAnalysis;
+
+    const responses = req.body.responses;
+    if (quiz && responses && typeof responses === "object" && !Array.isArray(responses)) {
+      const graded = gradeAttempt(quiz, responses);
+      ({ correct, wrong, marksObtained, totalMarks } = graded);
+      total = graded.total;
+      if (Array.isArray(questionAnalysis)) {
+        questionAnalysis = questionAnalysis.map((item, i) =>
+          graded.results[i]
+            ? { ...item, type: graded.results[i].type, status: graded.results[i].status, awarded: graded.results[i].awarded, marks: graded.results[i].max }
+            : item,
+        );
+      }
+    }
 
     const result = await Result.create({
       ...req.body,
       userId,
       category: quiz?.category || "tech",
+      totalQuestions: total,
+      correct,
+      wrong,
       marksPerQuestion,
       negativeMarking,
-      marksObtained: round2(correct * marksPerQuestion - wrong * negativeMarking),
-      totalMarks: round2(total * marksPerQuestion),
+      marksObtained,
+      totalMarks,
+      questionAnalysis,
     });
 
     res.json(result);

@@ -23,11 +23,16 @@ const resultSchema = new mongoose.Schema(
     questionAnalysis: [
       {
         questionNumber: Number,
+        type: { type: String, enum: ["mcq", "msq", "nat"], default: "mcq" },
         text: String,
         options: [String],
         topic: String,
         correctIndex: Number,
         yourIndex: { type: Number, default: null },
+        yourAnswer: String, // "B", "A, C" or the typed number
+        correctAnswer: String,
+        marks: Number,
+        awarded: Number,
         status: { type: String, enum: ["correct", "wrong", "skipped"] },
         timeTaken: Number,
       },
